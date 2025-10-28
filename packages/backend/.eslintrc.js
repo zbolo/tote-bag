@@ -1,17 +1,16 @@
-module.exports = {
-  parser: '@typescript-eslint/parser',
-  extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-  ],
+export default {
+  env: {
+    node: true,
+    es2024: true,
+    jest: true,
+  },
+  extends: ['eslint:recommended'],
   parserOptions: {
-    ecmaVersion: 2022,
+    ecmaVersion: 'latest',
     sourceType: 'module',
-    project: './tsconfig.json',
   },
   rules: {
-    '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
   },
 };

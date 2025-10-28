@@ -1,24 +1,14 @@
-# Build stage
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci
-
-COPY . .
-RUN npm run build
-
-# Production stage
-FROM node:18-alpine
+# Use Node.js v24 with native TypeScript support
+FROM node:24-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci --only=production
 
-COPY --from=builder /app/dist ./dist
+COPY src ./src
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# Run TypeScript files directly with Node.js v24's native type stripping
+CMD ["node", "--experimental-strip-types", "src/index.ts"]

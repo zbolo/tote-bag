@@ -9,8 +9,8 @@
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| **Node.js** | 20.x LTS | JavaScript runtime environment |
-| **TypeScript** | ^5.7.2 | Type-safe JavaScript superset |
+| **Node.js** | 24.x | JavaScript runtime with native TypeScript support |
+| **TypeScript** | ^5.7.2 | Type-safe JavaScript (runs natively via --experimental-strip-types) |
 | **Express** | ^4.21.1 | Web application framework |
 | **MikroORM** | ^6.3.12 | TypeScript ORM for PostgreSQL |
 | **PostgreSQL** | 16-alpine | Relational database |
@@ -25,8 +25,6 @@
 | **express-rate-limit** | ^7.4.1 | Rate limiting |
 | **uuid** | ^11.0.3 | UUID generation |
 | **dotenv** | ^16.4.5 | Environment variables |
-| **tsx** | ^4.19.2 | TypeScript execution |
-| **ts-jest** | ^29.2.5 | Jest TypeScript preprocessor |
 
 ### Frontend Technologies
 
@@ -86,6 +84,7 @@
 
 ### Backend Highlights
 
+- **Node.js 24.x**: Native TypeScript support with `--experimental-strip-types` - no build step needed!
 - **TypeScript 5.7.2**: Improved type inference, better error messages
 - **MikroORM 6.3.12**: Enhanced type safety, better performance
 - **Supertokens 20.1.5**: Improved security, better session management
@@ -104,7 +103,7 @@
 
 | Component | Minimum Version | Recommended |
 |-----------|----------------|-------------|
-| Node.js | 20.0.0 | 20.x LTS |
+| Node.js | 24.0.0 | 24.x (latest) |
 | Flutter SDK | 3.24.0 | Latest stable |
 | Dart SDK | 3.5.0 | 3.5.x |
 | Docker | 24.0.0 | Latest stable |
