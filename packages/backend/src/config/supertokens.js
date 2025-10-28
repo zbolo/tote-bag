@@ -1,8 +1,12 @@
 import supertokens from 'supertokens-node';
-import Session from 'supertokens-node/recipe/session';
-import EmailPassword from 'supertokens-node/recipe/emailpassword';
-import Dashboard from 'supertokens-node/recipe/dashboard';
+import Session from 'supertokens-node/recipe/session/index.js';
+import EmailPassword from 'supertokens-node/recipe/emailpassword/index.js';
+import Dashboard from 'supertokens-node/recipe/dashboard/index.js';
 
+/**
+ * Initialize Supertokens authentication
+ * @returns {void}
+ */
 export function initSupertokens() {
   supertokens.init({
     framework: 'express',

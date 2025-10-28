@@ -1,6 +1,6 @@
 import { EntityManager } from '@mikro-orm/core';
-import { User } from '../entities/User';
-import { AppError } from '../middleware/errorHandler';
+import { User } from '../entities/User.js';
+import { AppError } from '../middleware/errorHandler.js';
 
 export class UserService {
   constructor(private em: EntityManager) {}

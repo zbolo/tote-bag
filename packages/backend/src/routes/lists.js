@@ -1,15 +1,15 @@
 import { Router } from 'express';
 import { RequestHandler } from 'express';
-import { requireAuth, extractUserId, AuthenticatedRequest } from '../middleware/auth';
-import { ShoppingListService } from '../services/ShoppingListService';
-import { getORM } from '../config/database';
+import { requireAuth, extractUserId, AuthenticatedRequest } from '../middleware/auth.js';
+import { ShoppingListService } from '../services/ShoppingListService.js';
+import { getORM } from '../config/database.js';
 import {
   createListSchema,
   updateListSchema,
   addItemSchema,
   updateItemSchema,
   shareListSchema,
-} from '../types/validation';
+} from '../types/validation.js';
 
 const router = Router();
 

@@ -1,5 +1,5 @@
-import { ProductService } from '../../services/ProductService';
-import { orm } from '../setup';
+import { ProductService } from '../../services/ProductService.js';
+import { orm } from '../setup.js';
 import axios from 'axios';
 
 jest.mock('axios');

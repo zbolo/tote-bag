@@ -1,8 +1,8 @@
 import { Router, RequestHandler } from 'express';
-import { requireAuth, extractUserId, AuthenticatedRequest } from '../middleware/auth';
-import { UserService } from '../services/UserService';
-import { getORM } from '../config/database';
-import { updateUserSchema, searchUsersSchema } from '../types/validation';
+import { requireAuth, extractUserId, AuthenticatedRequest } from '../middleware/auth.js';
+import { UserService } from '../services/UserService.js';
+import { getORM } from '../config/database.js';
+import { updateUserSchema, searchUsersSchema } from '../types/validation.js';
 
 const router = Router();
 

@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { EntityManager } from '@mikro-orm/core';
-import { Product } from '../entities/Product';
+import { Product } from '../entities/Product.js';
 
-interface OpenFoodFactsProduct {
+/**
   code: string;
   product: {
     product_name?: string;

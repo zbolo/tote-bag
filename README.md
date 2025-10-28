@@ -52,9 +52,9 @@ A beautiful, modern grocery shopping assistant app with shared lists and barcode
 ### Backend (Node.js)
 
 #### Runtime & Language
-- **Node.js**: 24.x (with native TypeScript support via `--experimental-strip-types`)
-- **TypeScript**: ^5.7.2 - Latest TypeScript with modern features
-- No build step required - TypeScript runs directly in Node.js v24
+- **Node.js**: 24.x - Latest LTS with modern JavaScript features
+- **Plain JavaScript (ES Modules)** - No TypeScript, no build step
+- **JSDoc** - Type hints via JSDoc comments for IDE support
 
 #### Web Framework
 - **Express**: ^4.21.1 - Fast, unopinionated web framework
@@ -64,8 +64,9 @@ A beautiful, modern grocery shopping assistant app with shared lists and barcode
 - **express-rate-limit**: ^7.4.1 - Rate limiting middleware
 
 #### Database & ORM
-- **MikroORM**: ^6.3.12 (core, postgresql, migrations, reflection, cli)
-  - Type-safe ORM with Unit of Work pattern
+- **MikroORM**: ^6.3.12 (core, postgresql, migrations)
+  - EntitySchema-based ORM (no decorators needed)
+  - Unit of Work pattern
   - Automatic migrations
   - Entity relationships and cascade operations
 - **PostgreSQL**: 16.x (via Docker)
@@ -318,10 +319,10 @@ This project uses the latest stable versions of all dependencies (as of January 
 
 ### Key Version Highlights
 
-- **Node.js 24.x**: Latest with native TypeScript support (`--experimental-strip-types`)
-- **TypeScript 5.7.2**: Latest TypeScript with improved type inference and performance
+- **Node.js 24.x**: Latest with ES2024 support and modern JavaScript features
+- **Plain JavaScript**: Vanilla JS with JSDoc for type hints - no build step needed
 - **Flutter 3.24+**: Stable channel with Material Design 3 support
-- **MikroORM 6.3.12**: Latest ORM with improved type safety
+- **MikroORM 6.3.12**: EntitySchema-based ORM without decorators
 - **Supertokens 20.1.5**: Latest authentication with enhanced security
 - **Riverpod 2.6.1**: Latest state management with improved DevTools
 

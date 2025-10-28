@@ -1,9 +1,9 @@
 import { EntityManager } from '@mikro-orm/core';
-import { ShoppingList } from '../entities/ShoppingList';
-import { ShoppingListItem } from '../entities/ShoppingListItem';
-import { ListShare, SharePermission } from '../entities/ListShare';
-import { User } from '../entities/User';
-import { AppError } from '../middleware/errorHandler';
+import { ShoppingList } from '../entities/ShoppingList.js';
+import { ShoppingListItem } from '../entities/ShoppingListItem.js';
+import { ListShare, SharePermission } from '../entities/ListShare.js';
+import { User } from '../entities/User.js';
+import { AppError } from '../middleware/errorHandler.js';
 
 export class ShoppingListService {
   constructor(private em: EntityManager) {}

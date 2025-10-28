@@ -4,14 +4,14 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import { middleware as supertokensMiddleware } from 'supertokens-node/framework/express';
-import { errorHandler as supertokensErrorHandler } from 'supertokens-node/framework/express';
-import { initSupertokens } from './config/supertokens';
-import { initializeDatabase } from './config/database';
-import { errorHandler } from './middleware/errorHandler';
-import listsRouter from './routes/lists';
-import productsRouter from './routes/products';
-import usersRouter from './routes/users';
+import { middleware as supertokensMiddleware } from 'supertokens-node/framework/express/index.js';
+import { errorHandler as supertokensErrorHandler } from 'supertokens-node/framework/express/index.js';
+import { initSupertokens } from './config/supertokens.js';
+import { initializeDatabase } from './config/database.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import listsRouter from './routes/lists.js';
+import productsRouter from './routes/products.js';
+import usersRouter from './routes/users.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -65,7 +65,9 @@ app.use((_req, res) => {
   });
 });
 
-// Start server
+/**
+ * Start the server
+ */
 async function start() {
   try {
     // Initialize database

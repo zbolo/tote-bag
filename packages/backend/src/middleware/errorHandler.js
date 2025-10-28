@@ -1,23 +1,30 @@
-import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
+/**
+ * Custom application error class
+ */
 export class AppError extends Error {
-  constructor(
-    public statusCode: number,
-    public message: string,
-    public isOperational = true
-  ) {
+  /**
+   * @param {number} statusCode - HTTP status code
+   * @param {string} message - Error message
+   * @param {boolean} isOperational - Whether error is operational
+   */
+  constructor(statusCode, message, isOperational = true) {
     super(message);
+    this.statusCode = statusCode;
+    this.isOperational = isOperational;
     Object.setPrototypeOf(this, AppError.prototype);
   }
 }
 
-export const errorHandler = (
-  err: Error,
-  _req: Request,
-  res: Response,
-  _next: NextFunction
-) => {
+/**
+ * Global error handler middleware
+ * @param {Error} err
+ * @param {import('express').Request} _req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} _next
+ */
+export const errorHandler = (err, _req, res, _next) => {
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       status: 'error',

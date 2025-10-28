@@ -1,4 +1,4 @@
-# Use Node.js v24 with native TypeScript support
+# Use Node.js v24 - Plain JavaScript, no TypeScript
 FROM node:24-alpine
 
 WORKDIR /app
@@ -10,5 +10,5 @@ COPY src ./src
 
 EXPOSE 3000
 
-# Run TypeScript files directly with Node.js v24's native type stripping
-CMD ["node", "--experimental-strip-types", "src/index.ts"]
+# Run JavaScript directly with Node.js v24
+CMD ["node", "src/index.js"]

@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { SharePermission } from '../entities/ListShare';
+import { SharePermission } from '../entities/ListShare.js';
+
+/**
+ * Zod validation schemas for API requests
+ */
 
 // Shopping List Schemas
 export const createListSchema = z.object({
@@ -33,7 +37,7 @@ export const updateItemSchema = z.object({
 
 export const shareListSchema = z.object({
   email: z.string().email(),
-  permission: z.nativeEnum(SharePermission),
+  permission: z.enum(Object.values(SharePermission)),
 });
 
 // User Schemas
@@ -52,12 +56,3 @@ export const searchProductsSchema = z.object({
   query: z.string().min(1),
   limit: z.number().int().positive().max(50).optional(),
 });
-
-export type CreateListInput = z.infer<typeof createListSchema>;
-export type UpdateListInput = z.infer<typeof updateListSchema>;
-export type AddItemInput = z.infer<typeof addItemSchema>;
-export type UpdateItemInput = z.infer<typeof updateItemSchema>;
-export type ShareListInput = z.infer<typeof shareListSchema>;
-export type UpdateUserInput = z.infer<typeof updateUserSchema>;
-export type SearchUsersInput = z.infer<typeof searchUsersSchema>;
-export type SearchProductsInput = z.infer<typeof searchProductsSchema>;

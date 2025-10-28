@@ -1,6 +1,6 @@
 import EmailPassword from 'supertokens-node/recipe/emailpassword';
-import { UserService } from '../services/UserService';
-import { getORM } from '../config/database';
+import { UserService } from '../services/UserService.js';
+import { getORM } from '../config/database.js';
 
 // This hook is called after a user signs up via Supertokens
 export async function createUserAfterSignup(

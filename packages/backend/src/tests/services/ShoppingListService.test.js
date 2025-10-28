@@ -1,7 +1,7 @@
-import { ShoppingListService } from '../../services/ShoppingListService';
-import { UserService } from '../../services/UserService';
-import { orm } from '../setup';
-import { SharePermission } from '../../entities/ListShare';
+import { ShoppingListService } from '../../services/ShoppingListService.js';
+import { UserService } from '../../services/UserService.js';
+import { orm } from '../setup.js';
+import { SharePermission } from '../../entities/ListShare.js';
 
 describe('ShoppingListService', () => {
   let listService: ShoppingListService;
