@@ -3,8 +3,10 @@ import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/shopping_list_service.dart';
 import '../services/product_service.dart';
+import '../services/favorite_service.dart';
 import '../models/user.dart';
 import '../models/shopping_list.dart';
+import '../models/product.dart';
 
 // Service Providers
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
@@ -19,6 +21,10 @@ final shoppingListServiceProvider = Provider<ShoppingListService>(
 
 final productServiceProvider = Provider<ProductService>(
   (ref) => ProductService(ref.watch(apiClientProvider)),
+);
+
+final favoriteServiceProvider = Provider<FavoriteService>(
+  (ref) => FavoriteService(dio: ref.watch(apiClientProvider).dio),
 );
 
 // Auth State Providers
@@ -154,3 +160,41 @@ final shoppingListProvider = FutureProvider.family<ShoppingList, String>(
     return await service.getListById(listId);
   },
 );
+
+// Favorite Products Provider
+final favoriteProductsProvider = StateNotifierProvider<FavoriteProductsNotifier, AsyncValue<List<Product>>>(
+  (ref) => FavoriteProductsNotifier(ref.watch(favoriteServiceProvider)),
+);
+
+class FavoriteProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
+  final FavoriteService _service;
+
+  FavoriteProductsNotifier(this._service) : super(const AsyncValue.loading()) {
+    loadFavorites();
+  }
+
+  Future<void> loadFavorites() async {
+    state = const AsyncValue.loading();
+    try {
+      final favorites = await _service.getFavorites();
+      state = AsyncValue.data(favorites);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  Future<void> toggleFavorite(Product product) async {
+    try {
+      final isFavorite = await _service.toggleFavorite(product.id);
+      await loadFavorites();
+    } catch (error) {
+      rethrow;
+    }
+  }
+
+  bool isFavorite(String productId) {
+    return state.whenData((products) {
+      return products.any((p) => p.id == productId);
+    }).value ?? false;
+  }
+}

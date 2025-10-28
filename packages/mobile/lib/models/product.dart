@@ -11,6 +11,7 @@ class Product {
   final String source;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool isFavorite;
 
   Product({
     required this.id,
@@ -25,6 +26,7 @@ class Product {
     this.source = 'openfoodfacts',
     required this.createdAt,
     required this.updatedAt,
+    this.isFavorite = false,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class Product {
       source: json['source'] as String? ?? 'openfoodfacts',
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      isFavorite: json['isFavorite'] as bool? ?? false,
     );
   }
 
@@ -58,7 +61,40 @@ class Product {
       'source': source,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'isFavorite': isFavorite,
     };
+  }
+
+  Product copyWith({
+    String? id,
+    String? barcode,
+    String? name,
+    String? brand,
+    String? description,
+    String? imageUrl,
+    String? category,
+    String? quantity,
+    Map<String, dynamic>? nutritionData,
+    String? source,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? isFavorite,
+  }) {
+    return Product(
+      id: id ?? this.id,
+      barcode: barcode ?? this.barcode,
+      name: name ?? this.name,
+      brand: brand ?? this.brand,
+      description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
+      category: category ?? this.category,
+      quantity: quantity ?? this.quantity,
+      nutritionData: nutritionData ?? this.nutritionData,
+      source: source ?? this.source,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isFavorite: isFavorite ?? this.isFavorite,
+    );
   }
 
   String get displayName {

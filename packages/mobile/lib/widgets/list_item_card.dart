@@ -59,12 +59,29 @@ class ListItemCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            decoration: item.isChecked ? TextDecoration.lineThrough : null,
-                            color: item.isChecked ? AppTheme.textSecondaryColor : AppTheme.textPrimaryColor,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.name,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  decoration: item.isChecked ? TextDecoration.lineThrough : null,
+                                  color: item.isChecked ? AppTheme.textSecondaryColor : AppTheme.textPrimaryColor,
+                                ),
                           ),
+                        ),
+                        if (item.product != null)
+                          IconButton(
+                            icon: Icon(
+                              item.product!.isFavorite ? Icons.star : Icons.star_border,
+                              size: 20,
+                            ),
+                            onPressed: () => _toggleFavorite(context, ref),
+                            color: item.product!.isFavorite ? Colors.amber : AppTheme.textSecondaryColor,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -175,6 +192,36 @@ class ListItemCard extends ConsumerWidget {
           const SnackBar(
             content: Text('Item deleted'),
             backgroundColor: AppTheme.successColor,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _toggleFavorite(BuildContext context, WidgetRef ref) async {
+    if (item.product == null) return;
+
+    try {
+      final favoritesNotifier = ref.read(favoriteProductsProvider.notifier);
+      await favoritesNotifier.toggleFavorite(item.product!);
+      onRefresh();
+
+      if (context.mounted) {
+        final isFavorite = favoritesNotifier.isFavorite(item.product!.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isFavorite ? 'Added to favorites' : 'Removed from favorites'),
+            backgroundColor: AppTheme.successColor,
+            duration: const Duration(seconds: 1),
           ),
         );
       }

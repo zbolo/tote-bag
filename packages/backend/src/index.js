@@ -12,6 +12,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import listsRouter from './routes/lists.js';
 import productsRouter from './routes/products.js';
 import usersRouter from './routes/users.js';
+import favoritesRouter from './routes/favoriteProducts.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -52,6 +53,7 @@ const apiVersion = process.env.API_VERSION || 'v1';
 app.use(`/api/${apiVersion}/lists`, listsRouter);
 app.use(`/api/${apiVersion}/products`, productsRouter);
 app.use(`/api/${apiVersion}/users`, usersRouter);
+app.use(`/api/${apiVersion}/favorites`, favoritesRouter);
 
 // Error handlers
 app.use(supertokensErrorHandler());
