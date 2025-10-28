@@ -1,0 +1,32 @@
+{
+  "name": "tote-bag",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A beautiful grocery shopping assistant with shared lists and barcode scanning",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "backend": "npm run dev --workspace=packages/backend",
+    "backend:test": "npm run test --workspace=packages/backend",
+    "backend:build": "npm run build --workspace=packages/backend",
+    "mobile:test": "cd packages/mobile && flutter test",
+    "mobile:run": "cd packages/mobile && flutter run",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces"
+  },
+  "keywords": [
+    "grocery",
+    "shopping-list",
+    "barcode-scanner",
+    "flutter",
+    "nodejs"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

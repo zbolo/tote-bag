@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+*.js.map
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Flutter/Dart
+packages/mobile/.dart_tool/
+packages/mobile/.flutter-plugins
+packages/mobile/.flutter-plugins-dependencies
+packages/mobile/.packages
+packages/mobile/build/
+packages/mobile/.pub-cache/
+packages/mobile/.pub/
+packages/mobile/pubspec.lock
+packages/mobile/ios/Pods/
+packages/mobile/ios/.symlinks/
+packages/mobile/ios/Flutter/Flutter.framework
+packages/mobile/ios/Flutter/Flutter.podspec
+packages/mobile/.metadata
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker
+.docker/
+
+# Temporary files
+tmp/
+temp/
