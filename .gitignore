@@ -53,6 +53,7 @@ packages/mobile/.metadata
 *.db
 *.sqlite
 *.sqlite3
+postgres_data/
 
 # Docker
 .docker/
