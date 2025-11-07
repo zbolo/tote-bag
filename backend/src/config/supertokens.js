@@ -35,7 +35,15 @@ export function initSupertokens() {
       Session.init({
         getTokenTransferMethod: () => 'header',
       }),
-      Dashboard.init(),
+      Dashboard.init({
+        // Uncomment to enable dashboard authentication
+        // admins: [
+        //   {
+        //     email: "admin@example.com",
+        //     password: "admin123",
+        //   },
+        // ],
+      }),
     ],
   });
 }
