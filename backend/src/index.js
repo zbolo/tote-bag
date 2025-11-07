@@ -14,6 +14,7 @@ import listsRouter from './routes/lists.js';
 import productsRouter from './routes/products.js';
 import usersRouter from './routes/users.js';
 import favoritesRouter from './routes/favoriteProducts.js';
+import adminRouter from './routes/admin.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -64,6 +65,7 @@ app.use(`/api/${apiVersion}/lists`, listsRouter);
 app.use(`/api/${apiVersion}/products`, productsRouter);
 app.use(`/api/${apiVersion}/users`, usersRouter);
 app.use(`/api/${apiVersion}/favorites`, favoritesRouter);
+app.use(`/api/${apiVersion}/admin`, adminRouter);
 
 // Error handlers
 app.use(supertokensErrorHandler());

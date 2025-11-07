@@ -19,44 +19,18 @@ router.get('/me', async (req, res) => {
 
   let user = await service.getUserBySupertokensId(req.userId);
 
-  // If user doesn't exist in database, create them automatically
-  // This handles cases where signup hook failed or users existed before hook was added
+  // If user doesn't exist in database, return 404 and log details
+  // User needs to sign out and sign up again to trigger the signup hook
   if (!user) {
-    console.log(`[GET /me] User not found in database, fetching from SuperTokens...`);
+    console.error(`[GET /me] User not found in database: ${req.userId}`);
+    console.error(`[GET /me] This user exists in SuperTokens but not in our database.`);
+    console.error(`[GET /me] Solution: Sign out and sign up again to trigger user creation hook.`);
 
-    try {
-      // Import SuperTokens to get user info
-      const { default: supertokens } = await import('supertokens-node');
-      const EmailPassword = (await import('supertokens-node/recipe/emailpassword/index.js')).default;
-
-      // Get user info from SuperTokens
-      const stUser = await EmailPassword.getUserById(req.userId);
-
-      if (!stUser) {
-        console.error(`[GET /me] User not found in SuperTokens: ${req.userId}`);
-        return res.status(404).json({
-          status: 'error',
-          message: 'User not found',
-        });
-      }
-
-      console.log(`[GET /me] Creating user in database: ${stUser.email}`);
-
-      // Create user in database
-      user = await service.createUser({
-        email: stUser.email,
-        displayName: stUser.email.split('@')[0],
-        supertokensUserId: stUser.id,
-      });
-
-      console.log(`[GET /me] User created successfully: ${user.email}`);
-    } catch (error) {
-      console.error(`[GET /me] Error creating user:`, error);
-      return res.status(500).json({
-        status: 'error',
-        message: 'Failed to create user profile',
-      });
-    }
+    return res.status(404).json({
+      status: 'error',
+      message: 'User profile not found. Please sign out and sign up again.',
+      code: 'USER_NOT_IN_DATABASE',
+    });
   }
 
   res.json({

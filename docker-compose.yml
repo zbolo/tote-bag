@@ -26,7 +26,7 @@ services:
         condition: service_healthy
     environment:
       POSTGRESQL_CONNECTION_URI: postgresql://postgres:postgres@postgres:5432/tote_bag
-      POSTGRESQL_TABLE_SCHEMA: supertokens
+      POSTGRESQL_TABLE_SCHEMA: public
     ports:
       - "3567:3567"
     healthcheck:
@@ -67,3 +67,17 @@ services:
       - ./backend/mikro-orm.config.js:/app/mikro-orm.config.js
       - ./backend/.env:/app/.env
     command: npm run dev
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    user: root
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@test.it
+      PGADMIN_DEFAULT_PASSWORD: Test1234!
+    ports:
+      - "33888:80"
+    volumes:
+      - ./pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy

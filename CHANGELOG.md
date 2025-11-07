@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2025-11-07
+
+### Added
+- Admin endpoint `/api/v1/admin/sync-user/:userId` to sync SuperTokens users to database
+- ADMIN_ENDPOINTS.md documentation for admin operations
+- Support for syncing users created directly in SuperTokens dashboard
+
+### Fixed
+- User lookup now correctly handles users created through SuperTokens dashboard
+- Simplified `/api/v1/users/me` endpoint with clear error messages
+- Removed complex fallback user creation logic that was causing errors
+
+### Changed
+- `/api/v1/users/me` now returns 404 with helpful message if user not in database
+- Improved logging for user authentication and lookup operations
+
 ## [0.1.2] - 2025-11-07
 
 ### Fixed
@@ -71,7 +87,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/username/tote-bag/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/username/tote-bag/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/username/tote-bag/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/username/tote-bag/compare/v0.0.1...v0.1.0
