@@ -35,6 +35,10 @@ export class ShoppingListService {
     });
 
     await this.em.persistAndFlush(list);
+
+    // Populate relations for response
+    await this.em.populate(list, ['owner', 'items', 'shares.user']);
+
     return list;
   }
 
@@ -53,7 +57,7 @@ export class ShoppingListService {
     const ownedLists = await this.em.find(
       'ShoppingList',
       { owner: user, isArchived: false },
-      { populate: ['items', 'shares.user'], orderBy: { updatedAt: 'DESC' } }
+      { populate: ['owner', 'items', 'shares.user'], orderBy: { updatedAt: 'DESC' } }
     );
 
     // Get shared lists

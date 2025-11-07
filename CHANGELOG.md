@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2025-11-07
+
+### Fixed
+- Fixed shopping list serialization by populating owner field in getUserLists
+- Added explicit owner population after list creation
+- Resolved "String is not a subtype of Map<String, dynamic>" error in Flutter app
+- Shopping lists now return full owner object instead of just ID
+
+### Changed
+- Updated ShoppingListService.getUserLists to include 'owner' in populate array
+- Updated ShoppingListService.createList to populate relations before returning
+
 ## [0.1.4] - 2025-11-07
 
 ### Fixed
@@ -98,7 +110,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/username/tote-bag/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/username/tote-bag/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/username/tote-bag/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/username/tote-bag/compare/v0.1.1...v0.1.2
