@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2025-11-07
+
+### Fixed
+- Fixed Zod validation to accept null values for optional fields
+- Shopping list creation now works when mobile app sends null for optional fields (icon, description, color)
+- Item creation accepts null for optional fields (quantity, unit, notes, category, barcode, productId)
+- User profile updates accept null for avatarUrl
+
+### Changed
+- Updated all optional Zod schema fields to use `.nullable()` for better mobile app compatibility
+
 ## [0.1.3] - 2025-11-07
 
 ### Added
@@ -87,7 +98,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/username/tote-bag/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/username/tote-bag/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/username/tote-bag/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/username/tote-bag/compare/v0.1.0...v0.1.1
