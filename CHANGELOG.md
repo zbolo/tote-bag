@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2025-11-07
+
+### Fixed
+- Fixed user creation after SuperTokens signup by implementing proper database hook
+- Converted SuperTokens hook from TypeScript to JavaScript syntax
+- Integrated user creation hook into SuperTokens EmailPassword recipe configuration
+- Added automatic user creation in /me endpoint for existing users who signed up before hook was implemented
+- Resolved 404 error on /api/v1/users/me endpoint
+
+### Added
+- Comprehensive logging for user creation and authentication flows
+- Automatic fallback user creation when authenticated users don't exist in database
+
 ## [0.1.1] - 2025-11-07
 
 ### Fixed
@@ -58,7 +71,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/username/tote-bag/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/username/tote-bag/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/username/tote-bag/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/username/tote-bag/releases/tag/v0.0.1

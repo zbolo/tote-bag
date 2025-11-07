@@ -2,12 +2,15 @@ import supertokens from 'supertokens-node';
 import Session from 'supertokens-node/recipe/session/index.js';
 import EmailPassword from 'supertokens-node/recipe/emailpassword/index.js';
 import Dashboard from 'supertokens-node/recipe/dashboard/index.js';
+import { getEmailPasswordOverride } from '../hooks/supertokens.js';
 
 /**
  * Initialize Supertokens authentication
  * @returns {void}
  */
 export function initSupertokens() {
+  console.log('[SuperTokens] Initializing authentication...');
+
   supertokens.init({
     framework: 'express',
     supertokens: {
@@ -31,6 +34,8 @@ export function initSupertokens() {
             },
           ],
         },
+        // Override signup to create user in our database
+        override: getEmailPasswordOverride(),
       }),
       Session.init({
         getTokenTransferMethod: () => 'header',
@@ -46,4 +51,6 @@ export function initSupertokens() {
       }),
     ],
   });
+
+  console.log('[SuperTokens] Initialization complete');
 }
