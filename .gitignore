@@ -54,6 +54,7 @@ packages/mobile/.metadata
 *.sqlite
 *.sqlite3
 postgres_data/
+pgadmin_data/
 
 # Docker
 .docker/
