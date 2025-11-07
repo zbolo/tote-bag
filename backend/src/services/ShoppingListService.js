@@ -1,9 +1,5 @@
-import { EntityManager } from '@mikro-orm/core';
-import { ShoppingList } from '../entities/ShoppingList.js';
-import { ShoppingListItem } from '../entities/ShoppingListItem.js';
-import { ListShare, SharePermission } from '../entities/ListShare.js';
-import { User } from '../entities/User.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { SharePermission } from '../entities/ListShare.js';
 
 /**
  * Shopping List Service
@@ -28,12 +24,12 @@ export class ShoppingListService {
    * @returns {Promise<ShoppingList>}
    */
   async createList(ownerId, data) {
-    const owner = await this.em.findOne(User, { supertokensUserId: ownerId });
+    const owner = await this.em.findOne('User', { supertokensUserId: ownerId });
     if (!owner) {
       throw new AppError(404, 'User not found');
     }
 
-    const list = this.em.create(ShoppingList, {
+    const list = this.em.create('ShoppingList', {
       ...data,
       owner,
     });
@@ -48,21 +44,21 @@ export class ShoppingListService {
    * @returns {Promise<ShoppingList[]>}
    */
   async getUserLists(userId) {
-    const user = await this.em.findOne(User, { supertokensUserId: userId });
+    const user = await this.em.findOne('User', { supertokensUserId: userId });
     if (!user) {
       throw new AppError(404, 'User not found');
     }
 
     // Get owned lists
     const ownedLists = await this.em.find(
-      ShoppingList,
+      'ShoppingList',
       { owner: user, isArchived: false },
       { populate: ['items', 'shares.user'], orderBy: { updatedAt: 'DESC' } }
     );
 
     // Get shared lists
     const shares = await this.em.find(
-      ListShare,
+      'ListShare',
       { user, isActive: true },
       { populate: ['list.items', 'list.owner', 'list.shares.user'] }
     );
@@ -85,13 +81,13 @@ export class ShoppingListService {
    * @returns {Promise<ShoppingList>}
    */
   async getListById(listId, userId) {
-    const user = await this.em.findOne(User, { supertokensUserId: userId });
+    const user = await this.em.findOne('User', { supertokensUserId: userId });
     if (!user) {
       throw new AppError(404, 'User not found');
     }
 
     const list = await this.em.findOne(
-      ShoppingList,
+      'ShoppingList',
       { id: listId },
       { populate: ['items.product', 'owner', 'shares.user'] }
     );
@@ -120,7 +116,7 @@ export class ShoppingListService {
    */
   async updateList(listId, userId, data) {
     const list = await this.getListById(listId, userId);
-    const user = await this.em.findOne(User, { supertokensUserId: userId });
+    const user = await this.em.findOne('User', { supertokensUserId: userId });
 
     if (!user) {
       throw new AppError(404, 'User not found');
@@ -152,7 +148,7 @@ export class ShoppingListService {
    */
   async deleteList(listId, userId) {
     const list = await this.getListById(listId, userId);
-    const user = await this.em.findOne(User, { supertokensUserId: userId });
+    const user = await this.em.findOne('User', { supertokensUserId: userId });
 
     if (!user || list.owner.id !== user.id) {
       throw new AppError(403, 'Only the owner can delete the list');
@@ -170,7 +166,7 @@ export class ShoppingListService {
    */
   async addItem(listId, userId, data) {
     const list = await this.getListById(listId, userId);
-    const user = await this.em.findOne(User, { supertokensUserId: userId });
+    const user = await this.em.findOne('User', { supertokensUserId: userId });
 
     if (!user) {
       throw new AppError(404, 'User not found');
@@ -189,7 +185,7 @@ export class ShoppingListService {
 
     const maxOrder = Math.max(0, ...list.items.getItems().map(item => item.order));
 
-    const item = this.em.create(ShoppingListItem, {
+    const item = this.em.create('ShoppingListItem', {
       ...data,
       list,
       order: maxOrder + 1,
@@ -208,7 +204,7 @@ export class ShoppingListService {
    */
   async updateItem(itemId, userId, data) {
     const item = await this.em.findOne(
-      ShoppingListItem,
+      'ShoppingListItem',
       { id: itemId },
       { populate: ['list.owner', 'list.shares.user'] }
     );
@@ -217,7 +213,7 @@ export class ShoppingListService {
       throw new AppError(404, 'Item not found');
     }
 
-    const user = await this.em.findOne(User, { supertokensUserId: userId });
+    const user = await this.em.findOne('User', { supertokensUserId: userId });
     if (!user) {
       throw new AppError(404, 'User not found');
     }
@@ -251,7 +247,7 @@ export class ShoppingListService {
    */
   async deleteItem(itemId, userId) {
     const item = await this.em.findOne(
-      ShoppingListItem,
+      'ShoppingListItem',
       { id: itemId },
       { populate: ['list.owner', 'list.shares.user'] }
     );
@@ -260,7 +256,7 @@ export class ShoppingListService {
       throw new AppError(404, 'Item not found');
     }
 
-    const user = await this.em.findOne(User, { supertokensUserId: userId });
+    const user = await this.em.findOne('User', { supertokensUserId: userId });
     if (!user) {
       throw new AppError(404, 'User not found');
     }
@@ -289,19 +285,19 @@ export class ShoppingListService {
    */
   async shareList(listId, ownerId, targetUserEmail, permission) {
     const list = await this.getListById(listId, ownerId);
-    const owner = await this.em.findOne(User, { supertokensUserId: ownerId });
+    const owner = await this.em.findOne('User', { supertokensUserId: ownerId });
 
     if (!owner || list.owner.id !== owner.id) {
       throw new AppError(403, 'Only the owner can share the list');
     }
 
-    const targetUser = await this.em.findOne(User, { email: targetUserEmail });
+    const targetUser = await this.em.findOne('User', { email: targetUserEmail });
     if (!targetUser) {
       throw new AppError(404, 'Target user not found');
     }
 
     // Check if already shared
-    const existingShare = await this.em.findOne(ListShare, {
+    const existingShare = await this.em.findOne('ListShare', {
       list,
       user: targetUser,
     });
@@ -313,7 +309,7 @@ export class ShoppingListService {
       return existingShare;
     }
 
-    const share = this.em.create(ListShare, {
+    const share = this.em.create('ListShare', {
       list,
       user: targetUser,
       permission,
@@ -332,18 +328,18 @@ export class ShoppingListService {
    */
   async unshareList(listId, ownerId, targetUserId) {
     const list = await this.getListById(listId, ownerId);
-    const owner = await this.em.findOne(User, { supertokensUserId: ownerId });
+    const owner = await this.em.findOne('User', { supertokensUserId: ownerId });
 
     if (!owner || list.owner.id !== owner.id) {
       throw new AppError(403, 'Only the owner can unshare the list');
     }
 
-    const targetUser = await this.em.findOne(User, { id: targetUserId });
+    const targetUser = await this.em.findOne('User', { id: targetUserId });
     if (!targetUser) {
       throw new AppError(404, 'Target user not found');
     }
 
-    const share = await this.em.findOne(ListShare, { list, user: targetUser });
+    const share = await this.em.findOne('ListShare', { list, user: targetUser });
     if (share) {
       await this.em.removeAndFlush(share);
     }

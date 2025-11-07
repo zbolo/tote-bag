@@ -1,5 +1,5 @@
-import { Router, RequestHandler } from 'express';
-import { requireAuth, extractUserId, AuthenticatedRequest } from '../middleware/auth.js';
+import { Router } from 'express';
+import { requireAuth, extractUserId } from '../middleware/auth.js';
 import { UserService } from '../services/UserService.js';
 import { getORM } from '../config/database.js';
 import { updateUserSchema, searchUsersSchema } from '../types/validation.js';
@@ -11,11 +11,11 @@ router.use(requireAuth);
 router.use(extractUserId);
 
 // Get current user profile
-router.get('/me', (async (req: AuthenticatedRequest, res) => {
+router.get('/me', async (req, res) => {
   const em = getORM().em.fork();
   const service = new UserService(em);
 
-  const user = await service.getUserBySupertokensId(req.userId!);
+  const user = await service.getUserBySupertokensId(req.userId);
 
   if (!user) {
     return res.status(404).json({
@@ -28,24 +28,24 @@ router.get('/me', (async (req: AuthenticatedRequest, res) => {
     status: 'success',
     data: { user },
   });
-}) as RequestHandler);
+});
 
 // Update current user profile
-router.patch('/me', (async (req: AuthenticatedRequest, res) => {
+router.patch('/me', async (req, res) => {
   const data = updateUserSchema.parse(req.body);
   const em = getORM().em.fork();
   const service = new UserService(em);
 
-  const user = await service.updateUser(req.userId!, data);
+  const user = await service.updateUser(req.userId, data);
 
   res.json({
     status: 'success',
     data: { user },
   });
-}) as RequestHandler);
+});
 
 // Search users (for sharing lists)
-router.get('/search', (async (req: AuthenticatedRequest, res) => {
+router.get('/search', async (req, res) => {
   const { query, limit } = searchUsersSchema.parse(req.query);
   const em = getORM().em.fork();
   const service = new UserService(em);
@@ -56,6 +56,6 @@ router.get('/search', (async (req: AuthenticatedRequest, res) => {
     status: 'success',
     data: { users },
   });
-}) as RequestHandler);
+});
 
 export default router;

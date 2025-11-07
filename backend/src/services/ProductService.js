@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { Product } from '../entities/Product.js';
+import axios from 'axios'; 
 
 /**
  * Product Service
@@ -23,7 +22,7 @@ export class ProductService {
     console.log(`[ProductService] Looking up barcode: ${barcode}`);
 
     // Check if product exists in database and is recent
-    const existingProduct = await this.em.findOne(Product, { barcode });
+    const existingProduct = await this.em.findOne('Product', { barcode });
 
     if (existingProduct) {
       const hoursSinceLastFetch = existingProduct.lastFetchedAt
@@ -73,7 +72,7 @@ export class ProductService {
           return existingProduct;
         } else {
           console.log(`[ProductService] Creating new product: ${productData.name}`);
-          const newProduct = this.em.create(Product, productData);
+          const newProduct = this.em.create('Product', productData);
           await this.em.persistAndFlush(newProduct);
           return newProduct;
         }
@@ -124,10 +123,10 @@ export class ProductService {
         for (const apiProduct of response.data.products) {
           if (!apiProduct.code) continue;
 
-          let product = await this.em.findOne(Product, { barcode: apiProduct.code });
+          let product = await this.em.findOne('Product', { barcode: apiProduct.code });
 
           if (!product) {
-            product = this.em.create(Product, {
+            product = this.em.create('Product', {
               barcode: apiProduct.code,
               name: apiProduct.product_name || apiProduct.generic_name || 'Unknown Product',
               brand: apiProduct.brands,

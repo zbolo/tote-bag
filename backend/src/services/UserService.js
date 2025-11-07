@@ -1,4 +1,3 @@
-import { User } from '../entities/User.js';
 import { AppError } from '../middleware/errorHandler.js';
 
 /**
@@ -25,7 +24,7 @@ export class UserService {
   async createUser(data) {
     console.log(`[UserService] Creating user: ${data.email}`);
 
-    const existingUser = await this.em.findOne(User, {
+    const existingUser = await this.em.findOne('User', {
       supertokensUserId: data.supertokensUserId,
     });
 
@@ -34,7 +33,7 @@ export class UserService {
       return existingUser;
     }
 
-    const user = this.em.create(User, data);
+    const user = this.em.create('User', data);
     await this.em.persistAndFlush(user);
     console.log(`[UserService] User created successfully: ${user.email}`);
     return user;
@@ -46,7 +45,7 @@ export class UserService {
    * @returns {Promise<User | null>}
    */
   async getUserBySupertokensId(supertokensUserId) {
-    return this.em.findOne(User, { supertokensUserId });
+    return this.em.findOne('User', { supertokensUserId });
   }
 
   /**
@@ -55,7 +54,7 @@ export class UserService {
    * @returns {Promise<User | null>}
    */
   async getUserById(id) {
-    return this.em.findOne(User, { id });
+    return this.em.findOne('User', { id });
   }
 
   /**
@@ -64,7 +63,7 @@ export class UserService {
    * @returns {Promise<User | null>}
    */
   async getUserByEmail(email) {
-    return this.em.findOne(User, { email });
+    return this.em.findOne('User', { email });
   }
 
   /**
@@ -78,7 +77,7 @@ export class UserService {
   async updateUser(supertokensUserId, data) {
     console.log(`[UserService] Updating user: ${supertokensUserId}`);
 
-    const user = await this.em.findOne(User, { supertokensUserId });
+    const user = await this.em.findOne('User', { supertokensUserId });
 
     if (!user) {
       throw new AppError(404, 'User not found');
@@ -101,7 +100,7 @@ export class UserService {
     console.log(`[UserService] Searching users: "${query}" (limit: ${limit})`);
 
     const users = await this.em.find(
-      User,
+      'User',
       {
         $or: [
           { email: { $ilike: `%${query}%` } },
