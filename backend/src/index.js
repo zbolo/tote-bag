@@ -21,7 +21,38 @@ const PORT = process.env.PORT || 3000;
 initSupertokens();
 
 // Middleware
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://cdn.jsdelivr.net",
+        ],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://cdn.jsdelivr.net",
+        ],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "https://cdn.jsdelivr.net",
+        ],
+        connectSrc: ["'self'"],
+        fontSrc: [
+          "'self'",
+          "https://cdn.jsdelivr.net",
+        ],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'self'"],
+      },
+    },
+  })
+);
 app.use(compression());
 app.use(
   cors({
