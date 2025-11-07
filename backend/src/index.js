@@ -35,6 +35,7 @@ app.use(
           "'self'",
           "'unsafe-inline'",
           "https://cdn.jsdelivr.net",
+          "https://fonts.googleapis.com",
         ],
         imgSrc: [
           "'self'",
@@ -45,6 +46,7 @@ app.use(
         fontSrc: [
           "'self'",
           "https://cdn.jsdelivr.net",
+          "https://fonts.gstatic.com",
         ],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
