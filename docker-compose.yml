@@ -55,8 +55,10 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       SUPERTOKENS_CONNECTION_URI: http://supertokens:3567
-      API_DOMAIN: http://localhost:3000
-      WEBSITE_DOMAIN: http://localhost:3000
+      API_DOMAIN: http://localhost:3333
+      WEBSITE_DOMAIN: http://localhost:3333
+      CORS_ORIGIN: "http://localhost:3000,http://localhost:3333,http://localhost:8080"
+      OPENFOODFACTS_API_URL: https://world.openfoodfacts.org/api/v2
     ports:
       - "3333:3000"
     volumes:
