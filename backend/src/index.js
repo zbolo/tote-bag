@@ -56,12 +56,45 @@ app.use(
   })
 );
 app.use(compression());
+
+// CORS configuration - must be before other middleware
+const corsOrigins = process.env.CORS_ORIGIN?.split(',').map(o => o.trim()) || ['http://localhost:3000'];
+console.log('[CORS] Allowed origins:', corsOrigins);
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN?.split(',') || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, Postman, curl)
+      if (!origin) return callback(null, true);
+
+      if (corsOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log('[CORS] Blocked origin:', origin);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'rid',
+      'fdi-version',
+      'anti-csrf',
+      'st-auth-mode',
+    ],
+    exposedHeaders: [
+      'front-token',
+      'st-access-token',
+      'anti-csrf',
+    ],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   })
 );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
