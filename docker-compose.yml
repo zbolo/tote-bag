@@ -64,4 +64,6 @@ services:
     volumes:
       - ./backend/src:/app/src
       - ./backend/package.json:/app/package.json
+      - ./backend/mikro-orm.config.js:/app/mikro-orm.config.js
+      - ./backend/.env:/app/.env
     command: npm run dev
