@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import supertokens from 'supertokens-node';
 import { middleware as supertokensMiddleware } from 'supertokens-node/framework/express/index.js';
 import { errorHandler as supertokensErrorHandler } from 'supertokens-node/framework/express/index.js';
 import { initSupertokens } from './config/supertokens.js';
@@ -21,69 +22,20 @@ const PORT = process.env.PORT || 3000;
 initSupertokens();
 
 // Middleware
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "https://cdn.jsdelivr.net",
-        ],
-        styleSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "https://cdn.jsdelivr.net",
-          "https://fonts.googleapis.com",
-        ],
-        imgSrc: [
-          "'self'",
-          "data:",
-          "https://cdn.jsdelivr.net",
-        ],
-        connectSrc: ["'self'"],
-        fontSrc: [
-          "'self'",
-          "https://cdn.jsdelivr.net",
-          "https://fonts.gstatic.com",
-        ],
-        objectSrc: ["'none'"],
-        mediaSrc: ["'self'"],
-        frameSrc: ["'self'"],
-      },
-    },
-  })
-);
+// Use helmet for security headers but disable CSP to allow SuperTokens dashboard resources
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(compression());
 
 // CORS configuration - must be before other middleware
-// In development, allow all origins for mobile app compatibility
-const isDevelopment = process.env.NODE_ENV === 'development';
-
-console.log(`[CORS] Mode: ${isDevelopment ? 'Development (allow all)' : 'Production (restricted)'}`);
+// Using SuperTokens recommended CORS configuration
+console.log('[CORS] Allowing all origins with SuperTokens headers');
 
 app.use(
   cors({
-    origin: isDevelopment ? true : (process.env.CORS_ORIGIN?.split(',').map(o => o.trim()) || ['http://localhost:3000']),
-    credentials: true,
+    origin: true, // Allow all origins
+    allowedHeaders: ['content-type', ...supertokens.getAllCORSHeaders()],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'X-Requested-With',
-      'rid',
-      'fdi-version',
-      'anti-csrf',
-      'st-auth-mode',
-    ],
-    exposedHeaders: [
-      'front-token',
-      'st-access-token',
-      'anti-csrf',
-    ],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
+    credentials: true,
   })
 );
 
