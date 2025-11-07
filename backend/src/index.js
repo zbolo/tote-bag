@@ -58,22 +58,14 @@ app.use(
 app.use(compression());
 
 // CORS configuration - must be before other middleware
-const corsOrigins = process.env.CORS_ORIGIN?.split(',').map(o => o.trim()) || ['http://localhost:3000'];
-console.log('[CORS] Allowed origins:', corsOrigins);
+// In development, allow all origins for mobile app compatibility
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+console.log(`[CORS] Mode: ${isDevelopment ? 'Development (allow all)' : 'Production (restricted)'}`);
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, Postman, curl)
-      if (!origin) return callback(null, true);
-
-      if (corsOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log('[CORS] Blocked origin:', origin);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: isDevelopment ? true : (process.env.CORS_ORIGIN?.split(',').map(o => o.trim()) || ['http://localhost:3000']),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
