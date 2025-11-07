@@ -127,38 +127,41 @@ A beautiful, modern grocery shopping assistant app with shared lists and barcode
 
 ```
 tote-bag/
-├── packages/
-│   ├── backend/                    # Node.js Backend API
-│   │   ├── src/
-│   │   │   ├── config/            # Configuration files (database, supertokens)
-│   │   │   ├── entities/          # MikroORM entities (User, ShoppingList, etc.)
-│   │   │   ├── routes/            # Express route handlers
-│   │   │   ├── services/          # Business logic layer
-│   │   │   ├── middleware/        # Express middleware (auth, error handling)
-│   │   │   ├── types/             # TypeScript type definitions & validation
-│   │   │   ├── hooks/             # Lifecycle hooks (Supertokens)
-│   │   │   ├── tests/             # Unit and integration tests
-│   │   │   └── index.ts           # Application entry point
-│   │   ├── package.json
-│   │   ├── tsconfig.json
-│   │   ├── jest.config.js
-│   │   └── Dockerfile
-│   │
-│   └── mobile/                     # Flutter Mobile App
-│       ├── lib/
-│       │   ├── config/            # App configuration (theme, routes, API)
-│       │   ├── models/            # Data models (ShoppingList, Product, User)
-│       │   ├── providers/         # Riverpod state management
-│       │   ├── screens/           # UI screens (auth, home, list detail, scanner)
-│       │   ├── services/          # API services (HTTP clients)
-│       │   ├── widgets/           # Reusable UI components
-│       │   └── main.dart          # Application entry point
-│       ├── test/                  # Widget and unit tests
-│       ├── pubspec.yaml
-│       └── analysis_options.yaml
+├── backend/                        # Node.js Backend API
+│   ├── src/
+│   │   ├── config/                # Configuration files (database, supertokens)
+│   │   ├── entities/              # MikroORM entities (User, ShoppingList, etc.)
+│   │   ├── routes/                # Express route handlers
+│   │   ├── services/              # Business logic layer
+│   │   ├── middleware/            # Express middleware (auth, error handling)
+│   │   ├── types/                 # Zod validation schemas
+│   │   ├── hooks/                 # Lifecycle hooks (Supertokens)
+│   │   ├── tests/                 # Unit and integration tests
+│   │   └── index.js               # Application entry point
+│   ├── package.json
+│   ├── jest.config.js
+│   ├── .env                       # Environment variables (not committed)
+│   ├── .env.example               # Environment template
+│   └── Dockerfile
+│
+├── mobile/                         # Flutter Mobile App
+│   ├── lib/
+│   │   ├── config/                # App configuration (theme, routes, API)
+│   │   ├── models/                # Data models (ShoppingList, Product, User)
+│   │   ├── providers/             # Riverpod state management
+│   │   ├── screens/               # UI screens (auth, home, list detail, scanner)
+│   │   ├── services/              # API services (HTTP clients)
+│   │   ├── widgets/               # Reusable UI components
+│   │   └── main.dart              # Application entry point
+│   ├── test/                      # Widget and unit tests
+│   ├── pubspec.yaml
+│   └── analysis_options.yaml
 │
 ├── docker-compose.yml             # Docker services orchestration
 ├── package.json                   # Root workspace configuration
+├── CLAUDE.md                      # Project-specific development guidelines
+├── CHANGELOG.md                   # Version history
+├── TODO.md                        # Task tracking
 └── README.md                      # This file
 ```
 
@@ -251,36 +254,34 @@ npm install
 
 3. Install Flutter dependencies:
 ```bash
-cd packages/mobile
+cd mobile
 flutter pub get
+cd ..
 ```
 
 4. Set up environment variables:
 ```bash
-cp packages/backend/.env.example packages/backend/.env
+cp backend/.env.example backend/.env
 # Edit .env with your configuration
 ```
 
-5. Start the database:
+5. Start Docker services (PostgreSQL, Supertokens, Backend):
 ```bash
-npm run docker:up
-```
-
-6. Run database migrations:
-```bash
-npm run backend:migrate
+docker-compose up -d
 ```
 
 ### Development
 
-Start the backend:
+#### Backend (with Docker)
 ```bash
-npm run backend
+docker-compose up
 ```
 
-Run the mobile app:
+#### Mobile App
 ```bash
-npm run mobile:run
+cd mobile
+flutter run -d chrome  # For web
+flutter run            # For connected device
 ```
 
 ### Testing

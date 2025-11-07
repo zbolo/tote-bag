@@ -1,48 +1,83 @@
-import { EntityManager } from '@mikro-orm/core';
 import { User } from '../entities/User.js';
 import { AppError } from '../middleware/errorHandler.js';
 
+/**
+ * User Service
+ * Handles user management and operations
+ */
 export class UserService {
-  constructor(private em: EntityManager) {}
+  /**
+   * @param {import('@mikro-orm/core').EntityManager} em - MikroORM Entity Manager
+   */
+  constructor(em) {
+    this.em = em;
+  }
 
-  async createUser(data: {
-    email: string;
-    displayName: string;
-    supertokensUserId: string;
-    avatarUrl?: string;
-  }): Promise<User> {
+  /**
+   * Create a new user
+   * @param {object} data - User data
+   * @param {string} data.email - User email
+   * @param {string} data.displayName - User display name
+   * @param {string} data.supertokensUserId - Supertokens user ID
+   * @param {string} [data.avatarUrl] - User avatar URL
+   * @returns {Promise<User>}
+   */
+  async createUser(data) {
+    console.log(`[UserService] Creating user: ${data.email}`);
+
     const existingUser = await this.em.findOne(User, {
       supertokensUserId: data.supertokensUserId,
     });
 
     if (existingUser) {
+      console.log(`[UserService] User already exists: ${existingUser.email}`);
       return existingUser;
     }
 
     const user = this.em.create(User, data);
     await this.em.persistAndFlush(user);
+    console.log(`[UserService] User created successfully: ${user.email}`);
     return user;
   }
 
-  async getUserBySupertokensId(supertokensUserId: string): Promise<User | null> {
+  /**
+   * Get user by Supertokens ID
+   * @param {string} supertokensUserId - Supertokens user ID
+   * @returns {Promise<User | null>}
+   */
+  async getUserBySupertokensId(supertokensUserId) {
     return this.em.findOne(User, { supertokensUserId });
   }
 
-  async getUserById(id: string): Promise<User | null> {
+  /**
+   * Get user by ID
+   * @param {string} id - User ID
+   * @returns {Promise<User | null>}
+   */
+  async getUserById(id) {
     return this.em.findOne(User, { id });
   }
 
-  async getUserByEmail(email: string): Promise<User | null> {
+  /**
+   * Get user by email
+   * @param {string} email - User email
+   * @returns {Promise<User | null>}
+   */
+  async getUserByEmail(email) {
     return this.em.findOne(User, { email });
   }
 
-  async updateUser(
-    supertokensUserId: string,
-    data: Partial<{
-      displayName: string;
-      avatarUrl: string;
-    }>
-  ): Promise<User> {
+  /**
+   * Update user
+   * @param {string} supertokensUserId - Supertokens user ID
+   * @param {object} data - Update data
+   * @param {string} [data.displayName] - Display name
+   * @param {string} [data.avatarUrl] - Avatar URL
+   * @returns {Promise<User>}
+   */
+  async updateUser(supertokensUserId, data) {
+    console.log(`[UserService] Updating user: ${supertokensUserId}`);
+
     const user = await this.em.findOne(User, { supertokensUserId });
 
     if (!user) {
@@ -52,11 +87,20 @@ export class UserService {
     this.em.assign(user, data);
     await this.em.flush();
 
+    console.log(`[UserService] User updated successfully: ${user.email}`);
     return user;
   }
 
-  async searchUsers(query: string, limit: number = 10): Promise<User[]> {
-    return this.em.find(
+  /**
+   * Search users by query
+   * @param {string} query - Search query
+   * @param {number} [limit=10] - Maximum results
+   * @returns {Promise<User[]>}
+   */
+  async searchUsers(query, limit = 10) {
+    console.log(`[UserService] Searching users: "${query}" (limit: ${limit})`);
+
+    const users = await this.em.find(
       User,
       {
         $or: [
@@ -67,5 +111,8 @@ export class UserService {
       },
       { limit }
     );
+
+    console.log(`[UserService] Found ${users.length} users`);
+    return users;
   }
 }

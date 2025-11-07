@@ -5,15 +5,29 @@ import { ListShare, SharePermission } from '../entities/ListShare.js';
 import { User } from '../entities/User.js';
 import { AppError } from '../middleware/errorHandler.js';
 
+/**
+ * Shopping List Service
+ * Handles all business logic for shopping lists
+ */
 export class ShoppingListService {
-  constructor(private em: EntityManager) {}
+  /**
+   * @param {EntityManager} em - MikroORM Entity Manager
+   */
+  constructor(em) {
+    this.em = em;
+  }
 
-  async createList(ownerId: string, data: {
-    name: string;
-    description?: string;
-    color?: string;
-    icon?: string;
-  }): Promise<ShoppingList> {
+  /**
+   * Create a new shopping list
+   * @param {string} ownerId - Supertokens user ID
+   * @param {object} data - List data
+   * @param {string} data.name - List name
+   * @param {string} [data.description] - List description
+   * @param {string} [data.color] - List color
+   * @param {string} [data.icon] - List icon
+   * @returns {Promise<ShoppingList>}
+   */
+  async createList(ownerId, data) {
     const owner = await this.em.findOne(User, { supertokensUserId: ownerId });
     if (!owner) {
       throw new AppError(404, 'User not found');
@@ -28,7 +42,12 @@ export class ShoppingListService {
     return list;
   }
 
-  async getUserLists(userId: string): Promise<ShoppingList[]> {
+  /**
+   * Get all lists for a user (owned + shared)
+   * @param {string} userId - Supertokens user ID
+   * @returns {Promise<ShoppingList[]>}
+   */
+  async getUserLists(userId) {
     const user = await this.em.findOne(User, { supertokensUserId: userId });
     if (!user) {
       throw new AppError(404, 'User not found');
@@ -59,7 +78,13 @@ export class ShoppingListService {
     return uniqueLists;
   }
 
-  async getListById(listId: string, userId: string): Promise<ShoppingList> {
+  /**
+   * Get a shopping list by ID
+   * @param {string} listId - List ID
+   * @param {string} userId - Supertokens user ID
+   * @returns {Promise<ShoppingList>}
+   */
+  async getListById(listId, userId) {
     const user = await this.em.findOne(User, { supertokensUserId: userId });
     if (!user) {
       throw new AppError(404, 'User not found');
@@ -86,12 +111,14 @@ export class ShoppingListService {
     return list;
   }
 
-  async updateList(listId: string, userId: string, data: Partial<{
-    name: string;
-    description: string;
-    color: string;
-    icon: string;
-  }>): Promise<ShoppingList> {
+  /**
+   * Update a shopping list
+   * @param {string} listId - List ID
+   * @param {string} userId - Supertokens user ID
+   * @param {object} data - Update data
+   * @returns {Promise<ShoppingList>}
+   */
+  async updateList(listId, userId, data) {
     const list = await this.getListById(listId, userId);
     const user = await this.em.findOne(User, { supertokensUserId: userId });
 
@@ -117,7 +144,13 @@ export class ShoppingListService {
     return list;
   }
 
-  async deleteList(listId: string, userId: string): Promise<void> {
+  /**
+   * Delete a shopping list
+   * @param {string} listId - List ID
+   * @param {string} userId - Supertokens user ID
+   * @returns {Promise<void>}
+   */
+  async deleteList(listId, userId) {
     const list = await this.getListById(listId, userId);
     const user = await this.em.findOne(User, { supertokensUserId: userId });
 
@@ -128,15 +161,14 @@ export class ShoppingListService {
     await this.em.removeAndFlush(list);
   }
 
-  async addItem(listId: string, userId: string, data: {
-    name: string;
-    quantity?: number;
-    unit?: string;
-    notes?: string;
-    category?: string;
-    barcode?: string;
-    productId?: string;
-  }): Promise<ShoppingListItem> {
+  /**
+   * Add an item to a shopping list
+   * @param {string} listId - List ID
+   * @param {string} userId - Supertokens user ID
+   * @param {object} data - Item data
+   * @returns {Promise<ShoppingListItem>}
+   */
+  async addItem(listId, userId, data) {
     const list = await this.getListById(listId, userId);
     const user = await this.em.findOne(User, { supertokensUserId: userId });
 
@@ -167,15 +199,14 @@ export class ShoppingListService {
     return item;
   }
 
-  async updateItem(itemId: string, userId: string, data: Partial<{
-    name: string;
-    quantity: number;
-    unit: string;
-    notes: string;
-    isChecked: boolean;
-    category: string;
-    order: number;
-  }>): Promise<ShoppingListItem> {
+  /**
+   * Update a shopping list item
+   * @param {string} itemId - Item ID
+   * @param {string} userId - Supertokens user ID
+   * @param {object} data - Update data
+   * @returns {Promise<ShoppingListItem>}
+   */
+  async updateItem(itemId, userId, data) {
     const item = await this.em.findOne(
       ShoppingListItem,
       { id: itemId },
@@ -212,7 +243,13 @@ export class ShoppingListService {
     return item;
   }
 
-  async deleteItem(itemId: string, userId: string): Promise<void> {
+  /**
+   * Delete a shopping list item
+   * @param {string} itemId - Item ID
+   * @param {string} userId - Supertokens user ID
+   * @returns {Promise<void>}
+   */
+  async deleteItem(itemId, userId) {
     const item = await this.em.findOne(
       ShoppingListItem,
       { id: itemId },
@@ -242,12 +279,15 @@ export class ShoppingListService {
     await this.em.removeAndFlush(item);
   }
 
-  async shareList(
-    listId: string,
-    ownerId: string,
-    targetUserEmail: string,
-    permission: SharePermission
-  ): Promise<ListShare> {
+  /**
+   * Share a list with another user
+   * @param {string} listId - List ID
+   * @param {string} ownerId - Owner's Supertokens user ID
+   * @param {string} targetUserEmail - Target user's email
+   * @param {string} permission - Permission level
+   * @returns {Promise<ListShare>}
+   */
+  async shareList(listId, ownerId, targetUserEmail, permission) {
     const list = await this.getListById(listId, ownerId);
     const owner = await this.em.findOne(User, { supertokensUserId: ownerId });
 
@@ -283,7 +323,14 @@ export class ShoppingListService {
     return share;
   }
 
-  async unshareList(listId: string, ownerId: string, targetUserId: string): Promise<void> {
+  /**
+   * Unshare a list from a user
+   * @param {string} listId - List ID
+   * @param {string} ownerId - Owner's Supertokens user ID
+   * @param {string} targetUserId - Target user ID
+   * @returns {Promise<void>}
+   */
+  async unshareList(listId, ownerId, targetUserId) {
     const list = await this.getListById(listId, ownerId);
     const owner = await this.em.findOne(User, { supertokensUserId: ownerId });
 
