@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2025-11-07
+
+### Fixed
+- Fixed FavoriteProductService to lookup User entity by SuperTokens ID
+- All favorite methods now correctly resolve user from supertokensUserId
+- Resolved "Failed to load favorites" error in mobile app
+- Fixed getFavorites, addFavorite, removeFavorite, toggleFavorite, isFavorite, and getFavoriteStatuses methods
+
+### Added
+- Comprehensive logging for favorite operations debugging
+
 ## [0.1.5] - 2025-11-07
 
 ### Fixed
@@ -110,7 +121,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/username/tote-bag/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/username/tote-bag/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/username/tote-bag/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/username/tote-bag/compare/v0.1.2...v0.1.3
