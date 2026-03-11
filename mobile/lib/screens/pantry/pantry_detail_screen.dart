@@ -7,7 +7,7 @@ import '../../providers/providers.dart';
 import '../../services/logger.dart';
 import '../../widgets/pantry_item_card.dart';
 import '../../widgets/error_snackbar.dart';
-import 'add_pantry_item_dialog.dart';
+import 'add_pantry_item_screen.dart';
 
 class PantryDetailScreen extends ConsumerWidget {
   final String pantryId;
@@ -273,14 +273,17 @@ class PantryDetailScreen extends ConsumerWidget {
           final pantry = pantryAsync.valueOrNull;
           if (pantry == null) return;
 
-          await showDialog(
-            context: context,
-            builder: (context) => AddPantryItemDialog(
-              pantryId: pantryId,
-              storageLocations: pantry.storageLocations,
+          final added = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(
+              builder: (_) => AddPantryItemScreen(
+                pantryId: pantryId,
+                storageLocations: pantry.storageLocations,
+              ),
             ),
           );
-          ref.invalidate(pantryProvider(pantryId));
+          if (added == true) {
+            ref.invalidate(pantryProvider(pantryId));
+          }
         },
         child: const Icon(Icons.add),
       ),

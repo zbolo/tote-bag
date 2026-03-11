@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-03-11
+
+### Changed
+- **Add pantry item** converted from dialog to full-page screen for better usability with many fields
+  - Organized form into clear sections: Product Info, Storage, Dates, Extra Details
+  - Form validation with required field indicators
+  - Section labels for better visual hierarchy
+  - Date pickers styled as tappable tiles instead of plain ListTiles
+
+### Added
+- **Barcode scanning for pantry items** — scan a product barcode to auto-fill name and category
+  - Prominent "Scan Barcode" button at the top of the add item form
+  - Product found: displays product card with image, auto-fills name and category fields
+  - Product not found: prompts for product name, then pre-fills the form
+  - Scanned product can be cleared to enter details manually instead
+
 ## [0.7.0] - 2026-03-11
 
 ### Added
@@ -300,7 +316,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/username/tote-bag/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/username/tote-bag/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/username/tote-bag/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/username/tote-bag/compare/v0.4.1...v0.5.0

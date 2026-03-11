@@ -1,6 +1,6 @@
 {
   "name": "@tote-bag/backend",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Backend API for Tote Bag grocery shopping assistant - Plain JavaScript with JSDoc",
   "main": "src/index.js",
   "type": "module",
