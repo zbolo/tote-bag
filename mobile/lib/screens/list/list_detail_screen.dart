@@ -116,14 +116,11 @@ class ListDetailScreen extends ConsumerWidget {
 
                 // Shopping List + Favorites (scrollable)
                 Expanded(
-                  child: list.items.isEmpty
-                      ? _buildEmptyWithFavorites(
-                          context, ref, list, favoritesAsync)
-                      : viewMode == ListViewMode.list
-                          ? _buildListView(context, ref, uncheckedItems,
-                              checkedItems, list, favoritesAsync)
-                          : _buildGridView(context, ref, uncheckedItems,
-                              checkedItems, list, favoritesAsync),
+                  child: viewMode == ListViewMode.list
+                      ? _buildListView(context, ref, uncheckedItems,
+                          checkedItems, list, favoritesAsync)
+                      : _buildGridView(context, ref, uncheckedItems,
+                          checkedItems, list, favoritesAsync),
                 ),
               ],
             ),
@@ -178,15 +175,10 @@ class ListDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyWithFavorites(
-    BuildContext context,
-    WidgetRef ref,
-    ShoppingList list,
-    AsyncValue<List<Product>> favoritesAsync,
-  ) {
-    return ListView(
+  Widget _buildEmptyMessage(BuildContext context) {
+    return Column(
       children: [
-        const SizedBox(height: 48),
+        const SizedBox(height: 32),
         const Icon(
           Icons.shopping_cart_outlined,
           size: 64,
@@ -208,8 +200,7 @@ class ListDetailScreen extends ConsumerWidget {
               ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 32),
-        ..._buildFavoritesSection(context, ref, list, favoritesAsync),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -222,9 +213,11 @@ class ListDetailScreen extends ConsumerWidget {
     ShoppingList list,
     AsyncValue<List<Product>> favoritesAsync,
   ) {
+    final isEmpty = uncheckedItems.isEmpty && checkedItems.isEmpty;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        if (isEmpty) _buildEmptyMessage(context),
         if (uncheckedItems.isNotEmpty) ...[
           ...uncheckedItems.map((item) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -276,8 +269,16 @@ class ListDetailScreen extends ConsumerWidget {
         .map((item) => item.product!.id)
         .toSet();
 
+    final isEmpty = uncheckedItems.isEmpty && checkedItems.isEmpty;
     return CustomScrollView(
       slivers: [
+        if (isEmpty)
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverToBoxAdapter(
+              child: _buildEmptyMessage(context),
+            ),
+          ),
         if (uncheckedItems.isNotEmpty)
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
