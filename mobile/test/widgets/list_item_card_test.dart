@@ -123,7 +123,7 @@ void main() {
       expect(find.byIcon(Icons.star_border), findsNothing);
     });
 
-    testWidgets('should display product image when available',
+    testWidgets('should not display product image in list view',
         (WidgetTester tester) async {
       final product = Product(
         id: '1',
@@ -149,8 +149,8 @@ void main() {
 
       await tester.pumpWidget(createTestWidget(item: item, listId: 'list1'));
 
-      // Should display product image
-      expect(find.byType(Image), findsOneWidget);
+      // Product images are only shown in grid view, not in list view
+      expect(find.byType(Image), findsNothing);
     });
 
     testWidgets('should show item details correctly',

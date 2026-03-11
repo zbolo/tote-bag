@@ -46,29 +46,32 @@ class ListItemGridCard extends ConsumerWidget {
                 Expanded(
                   flex: 2,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         // Name
-                        Text(
-                          item.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                decoration: isChecked
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                                color: isChecked
-                                    ? AppTheme.textSecondaryColor
-                                    : AppTheme.textPrimaryColor,
-                              ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                        Flexible(
+                          child: Text(
+                            item.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  decoration: isChecked
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                  color: isChecked
+                                      ? AppTheme.textSecondaryColor
+                                      : AppTheme.textPrimaryColor,
+                                ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 1),
 
                         // Quantity + category
                         Row(
@@ -80,6 +83,7 @@ class ListItemGridCard extends ConsumerWidget {
                                   .bodySmall
                                   ?.copyWith(
                                     color: AppTheme.textSecondaryColor,
+                                    fontSize: 10,
                                   ),
                             ),
                             if (item.category != null) ...[

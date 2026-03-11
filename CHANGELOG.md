@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-03-11
+
+### Added
+- List/grid view toggle for shopping list items (Bring!/KitchenOwl style)
+  - Toggle button in list detail screen app bar switches between list and card views
+  - New `ListItemGridCard` widget displays items as visual cards in a 3-column grid
+  - Grid cards show product image, name, quantity, category badge, favorite star, and check overlay
+  - Long-press on grid card to delete item
+  - `listViewModeProvider` (Riverpod StateProvider) tracks current view mode
+- Widget tests for `ListItemGridCard` covering all display states
+
+### Changed
+- Product images are now shown only in grid/card view, not in list view
+  - `ListItemCard` no longer displays product thumbnails for a cleaner compact layout
+  - Grid view is the place to see product images at a glance
+- Updated `ListItemCard` test to reflect image removal from list view
+
 ## [0.5.0] - 2026-03-11
 
 ### Added
@@ -237,7 +254,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/username/tote-bag/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/username/tote-bag/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/username/tote-bag/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/username/tote-bag/compare/v0.3.0...v0.4.0
