@@ -12,14 +12,19 @@ import { getORM } from '../config/database.js';
  * @returns {Promise<void>}
  */
 export async function createUserAfterSignup(user, formFieldsOrDisplayName) {
-  console.log('[SuperTokens Hook] Creating user in database:', user.email);
+  // SuperTokens v24: email is in user.emails[] array, not user.email
+  const email = user.emails?.[0]
+    ?? user.loginMethods?.find(m => m.recipeId === 'emailpassword')?.email
+    ?? user.email;
+
+  console.log('[SuperTokens Hook] Creating user in database:', email);
 
   let displayName;
   if (Array.isArray(formFieldsOrDisplayName)) {
     const field = formFieldsOrDisplayName.find(f => f.id === 'displayName');
-    displayName = field?.value || user.email.split('@')[0];
+    displayName = field?.value || email.split('@')[0];
   } else {
-    displayName = formFieldsOrDisplayName || user.email.split('@')[0];
+    displayName = formFieldsOrDisplayName || email.split('@')[0];
   }
 
   try {
@@ -27,7 +32,7 @@ export async function createUserAfterSignup(user, formFieldsOrDisplayName) {
     const userService = new UserService(em);
 
     await userService.createUser({
-      email: user.email,
+      email,
       displayName,
       supertokensUserId: user.id,
     });
