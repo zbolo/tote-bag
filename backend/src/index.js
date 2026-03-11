@@ -1,17 +1,16 @@
 import 'dotenv/config';
 import express from 'express';
-import cors from 'cors';
 import helmet from 'helmet';
+import cors from 'cors';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import supertokens from 'supertokens-node';
-import { middleware as supertokensMiddleware } from 'supertokens-node/framework/express/index.js';
-import { errorHandler as supertokensErrorHandler } from 'supertokens-node/framework/express/index.js';
 import { initSupertokens } from './config/supertokens.js';
+import { middleware as supertokensMiddleware, errorHandler as supertokensErrorHandler } from 'supertokens-node/framework/express/index.js';
+import supertokens from 'supertokens-node';
 import { initializeDatabase, closeDatabase } from './config/database.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import authRouter from './routes/auth.js';
@@ -26,6 +25,7 @@ const __dirname = path.dirname(__filename);
 
 /**
  * Validate required environment variables in production
+ * Fail fast if critical security-related env vars are missing
  */
 function validateEnvironment() {
   const isProduction = process.env.NODE_ENV === 'production';
@@ -63,26 +63,18 @@ const PORT = process.env.PORT || 3000;
 // Initialize Supertokens
 initSupertokens();
 
-// Middleware
-// Use helmet for security headers but disable CSP to allow SuperTokens dashboard resources
+// Middleware chain (same order as webdeploy/ms)
 app.use(helmet({ contentSecurityPolicy: false }));
+
+app.use(cors({
+  origin: true,
+  allowedHeaders: ['content-type', ...supertokens.getAllCORSHeaders()],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  credentials: true,
+}));
+
 app.use(compression());
 
-// CORS configuration - allow all origins for mobile app compatibility
-console.log('[CORS] Allowing all origins with SuperTokens headers');
-app.use(
-  cors({
-    origin: true,
-    allowedHeaders: ['content-type', ...supertokens.getAllCORSHeaders()],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    credentials: true,
-  })
-);
-
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
@@ -90,8 +82,10 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// Supertokens middleware
 app.use(supertokensMiddleware());
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Swagger UI setup
 try {
@@ -113,11 +107,6 @@ try {
   console.warn('[Swagger] Could not load OpenAPI specification:', error.message);
 }
 
-// Health check
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
 // Auth Routes (custom auth endpoints, SuperTokens handles /auth/* automatically)
 app.use('/auth', authRouter);
 
@@ -129,9 +118,13 @@ app.use(`/api/${apiVersion}/users`, usersRouter);
 app.use(`/api/${apiVersion}/favorites`, favoritesRouter);
 app.use(`/api/${apiVersion}/admin`, adminRouter);
 
+// Health check
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Error handlers
 app.use(supertokensErrorHandler());
-app.use(errorHandler);
 
 // 404 handler
 app.use((_req, res) => {
@@ -141,18 +134,19 @@ app.use((_req, res) => {
   });
 });
 
+app.use(errorHandler);
+
 /**
  * Start the server
  */
 async function start() {
   try {
-    // Initialize database
     await initializeDatabase();
     console.log('[Database] Connected successfully');
 
     app.listen(PORT, () => {
       console.log(`[Server] Running on port ${PORT}`);
-      console.log(`[Server] Environment: ${process.env.NODE_ENV}`);
+      console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`[Server] API Version: ${apiVersion}`);
     });
   } catch (error) {
