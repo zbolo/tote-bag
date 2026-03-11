@@ -220,6 +220,7 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'homeFab',
         onPressed: () async {
           await showDialog(
             context: context,

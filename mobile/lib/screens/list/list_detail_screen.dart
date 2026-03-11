@@ -167,6 +167,7 @@ class ListDetailScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'listDetailFab',
         onPressed: () async {
           await showDialog(
             context: context,

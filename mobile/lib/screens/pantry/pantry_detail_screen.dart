@@ -268,6 +268,7 @@ class PantryDetailScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'pantryDetailFab',
         onPressed: () async {
           final pantry = pantryAsync.valueOrNull;
           if (pantry == null) return;

@@ -117,6 +117,7 @@ class PantryListScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'pantryListFab',
         onPressed: () async {
           await showDialog(
             context: context,
