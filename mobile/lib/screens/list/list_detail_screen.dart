@@ -79,41 +79,40 @@ class ListDetailScreen extends ConsumerWidget {
             },
             child: Column(
               children: [
-                // Progress Bar
-                if (list.items.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    color: AppTheme.surfaceColor,
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '${list.checkedItems} of ${list.totalItems} items',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            Text(
-                              '${(list.progress * 100).toInt()}%',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    color: AppTheme.primaryColor,
-                                  ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        LinearProgressIndicator(
-                          value: list.progress,
-                          backgroundColor: AppTheme.dividerColor,
-                          minHeight: 6,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ],
-                    ),
+                // Progress Bar (always visible for consistent layout)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  color: AppTheme.surfaceColor,
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${list.checkedItems} of ${list.totalItems} items',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          Text(
+                            '${(list.progress * 100).toInt()}%',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  color: AppTheme.primaryColor,
+                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      LinearProgressIndicator(
+                        value: list.progress,
+                        backgroundColor: AppTheme.dividerColor,
+                        minHeight: 6,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ],
                   ),
+                ),
 
                 // Shopping List + Favorites (scrollable)
                 Expanded(
