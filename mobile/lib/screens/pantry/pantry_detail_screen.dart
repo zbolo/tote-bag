@@ -167,7 +167,14 @@ class PantryDetailScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       children: [
                         FilterChip(
-                          label: const Text('All'),
+                          label: Text(
+                            'All',
+                            style: TextStyle(
+                              color: locationFilter == null
+                                  ? AppTheme.primaryColor
+                                  : AppTheme.textPrimaryColor,
+                            ),
+                          ),
                           selected: locationFilter == null,
                           onSelected: (_) => ref
                               .read(pantryStorageFilterProvider.notifier)
@@ -178,7 +185,14 @@ class PantryDetailScreen extends ConsumerWidget {
                               padding: const EdgeInsets.only(right: 8),
                               child: FilterChip(
                                 avatar: Icon(loc.iconData, size: 16),
-                                label: Text(loc.name),
+                                label: Text(
+                                  loc.name,
+                                  style: TextStyle(
+                                    color: locationFilter == loc.id
+                                        ? AppTheme.primaryColor
+                                        : AppTheme.textPrimaryColor,
+                                  ),
+                                ),
                                 selected: locationFilter == loc.id,
                                 onSelected: (_) => ref
                                     .read(

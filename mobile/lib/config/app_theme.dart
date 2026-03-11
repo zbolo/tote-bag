@@ -159,8 +159,16 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
         ),
         backgroundColor: backgroundColor,
-        selectedColor: primaryColor.withValues(alpha: 0.1),
-        labelStyle: GoogleFonts.inter(fontSize: 14),
+        selectedColor: primaryColor.withValues(alpha: 0.15),
+        labelStyle: GoogleFonts.inter(
+          fontSize: 14,
+          color: textPrimaryColor,
+        ),
+        secondaryLabelStyle: GoogleFonts.inter(
+          fontSize: 14,
+          color: primaryColor,
+        ),
+        iconTheme: const IconThemeData(color: textSecondaryColor, size: 18),
       ),
       dividerTheme: const DividerThemeData(
         color: dividerColor,
