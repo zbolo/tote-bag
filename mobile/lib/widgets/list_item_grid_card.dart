@@ -5,6 +5,7 @@ import '../config/app_theme.dart';
 import '../models/shopping_list_item.dart';
 import '../providers/providers.dart';
 import '../services/logger.dart';
+import 'edit_quantity_dialog.dart';
 import 'error_snackbar.dart';
 
 /// Card-style grid tile for a shopping list item, inspired by Bring! / KitchenOwl.
@@ -76,15 +77,27 @@ class ListItemGridCard extends ConsumerWidget {
                         // Quantity + category
                         Row(
                           children: [
-                            Text(
-                              item.displayQuantity,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: AppTheme.textSecondaryColor,
-                                    fontSize: 10,
-                                  ),
+                            GestureDetector(
+                              onTap: () => _editQuantity(context, ref),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: AppTheme.dividerColor),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                                child: Text(
+                                  item.displayQuantity,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: AppTheme.textSecondaryColor,
+                                        fontSize: 10,
+                                      ),
+                                ),
+                              ),
                             ),
                             if (item.category != null) ...[
                               const SizedBox(width: 4),
@@ -197,6 +210,37 @@ class ListItemGridCard extends ConsumerWidget {
             ),
       ),
     );
+  }
+
+  Future<void> _editQuantity(BuildContext context, WidgetRef ref) async {
+    final newQuantity = await showDialog<int>(
+      context: context,
+      builder: (context) => EditQuantityDialog(
+        itemName: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+      ),
+    );
+
+    if (newQuantity == null || newQuantity == item.quantity) return;
+
+    Log.info('ListItemGridCard',
+        'Updating quantity for "${item.name}" → $newQuantity');
+    try {
+      final service = ref.read(shoppingListServiceProvider);
+      await service.updateItem(
+        listId: listId,
+        itemId: item.id,
+        quantity: newQuantity,
+      );
+      onRefresh();
+    } catch (e) {
+      Log.error(
+          'ListItemGridCard', 'Quantity update failed for "${item.name}"', e);
+      if (context.mounted) {
+        showErrorSnackBar(context, e);
+      }
+    }
   }
 
   Future<void> _toggleChecked(BuildContext context, WidgetRef ref) async {
