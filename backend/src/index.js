@@ -107,8 +107,8 @@ try {
   console.warn('[Swagger] Could not load OpenAPI specification:', error.message);
 }
 
-// Auth Routes (custom auth endpoints, SuperTokens handles /auth/* automatically)
-app.use('/auth', authRouter);
+// Auth Routes (custom auth endpoints, SuperTokens handles /api/auth/* automatically)
+app.use('/api/auth', authRouter);
 
 // API Routes
 const apiVersion = process.env.API_VERSION || 'v1';

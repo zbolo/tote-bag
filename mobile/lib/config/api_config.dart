@@ -8,7 +8,7 @@ class ApiConfig {
   static const String apiPrefix = '/api/$apiVersion';
 
   // Endpoints
-  static const String authEndpoint = '/auth';
+  static const String authEndpoint = '/api/auth';
   static const String listsEndpoint = '$apiPrefix/lists';
   static const String productsEndpoint = '$apiPrefix/products';
   static const String usersEndpoint = '$apiPrefix/users';

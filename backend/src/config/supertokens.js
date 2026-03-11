@@ -22,7 +22,7 @@ export function initSupertokens() {
       appName: 'Tote Bag',
       apiDomain: process.env.API_DOMAIN || 'http://localhost:3000',
       websiteDomain: process.env.WEBSITE_DOMAIN || 'http://localhost:3000',
-      apiBasePath: '/auth',
+      apiBasePath: '/api/auth',
       websiteBasePath: '/auth',
     },
     recipeList: [

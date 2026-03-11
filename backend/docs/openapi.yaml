@@ -7,13 +7,16 @@ info:
     ## Authentication
     Authentication is handled by SuperTokens using header-based sessions.
     Sign-up is disabled - users are created by admins via the SuperTokens Dashboard.
-    After signing in via `POST /auth/signin`, include the session tokens in subsequent requests.
+    After signing in via `POST /api/auth/signin`, include the session tokens in subsequent requests.
 
     ## SuperTokens Automatic Routes
     These routes are handled automatically by SuperTokens middleware:
-    - `POST /auth/signin` - Sign in with email and password
-    - `POST /auth/signout` - Sign out current session
-    - `POST /auth/session/refresh` - Refresh session tokens
+    - `POST /api/auth/signin` - Sign in with email and password
+    - `POST /api/auth/signout` - Sign out current session
+    - `POST /api/auth/session/refresh` - Refresh session tokens
+
+    ## SuperTokens Dashboard
+    Available at `/api/auth/dashboard` for user management.
   version: 0.2.0
   contact:
     name: Tote Bag Team
@@ -180,7 +183,7 @@ paths:
                     type: string
                     format: date-time
 
-  /auth/health:
+  /api/auth/health:
     get:
       tags: [Auth]
       summary: Auth service health check
@@ -203,7 +206,7 @@ paths:
                     type: string
                     format: date-time
 
-  /auth/change-password:
+  /api/auth/change-password:
     post:
       tags: [Auth]
       summary: Change password
