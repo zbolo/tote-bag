@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-03-11
+
+### Changed
+- Redesigned app logo to match the earthy color palette
+  - Deep forest green gradient background
+  - Terracotta-colored handles
+  - Warm off-white bag body with checklist items
+  - Golden mustard accent stripe
+  - Small leaf accent for organic/natural feel
+- Updated Android adaptive icon background to forest green (#1B6B4E)
+- Added `remove_alpha_ios: true` for App Store compliance
+- Regenerated all platform icons (Android, iOS, Web)
+
 ## [0.4.0] - 2026-03-11
 
 ### Added
@@ -198,7 +211,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/username/tote-bag/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/username/tote-bag/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/username/tote-bag/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/username/tote-bag/compare/v0.2.0...v0.2.1
