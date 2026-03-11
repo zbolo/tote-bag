@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -5,6 +6,7 @@ import '../config/app_theme.dart';
 import '../models/pantry_item.dart';
 import '../providers/providers.dart';
 import '../services/logger.dart';
+import 'edit_quantity_dialog.dart';
 import 'error_snackbar.dart';
 
 class PantryItemCard extends ConsumerStatefulWidget {
@@ -55,160 +57,236 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header row: name, expiry badge, delete button
-              Row(
-                children: [
-                  if (item.storageLocation != null) ...[
-                    Icon(
-                      item.storageLocation!.iconData,
-                      size: 18,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  Expanded(
-                    child: Text(
-                      item.name,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  if (item.expirationDate != null)
-                    _buildExpiryChip(context, item),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    onPressed: () => _deleteItem(context),
-                    color: AppTheme.errorColor,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // Quantity info row
-              Row(
-                children: [
-                  Text(
-                    item.displayQuantity,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.textSecondaryColor,
+              // Product image thumbnail
+              if (item.product?.imageUrl != null) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 56,
+                    height: 56,
+                    child: CachedNetworkImage(
+                      imageUrl: item.product!.imageUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(
+                        color: AppTheme.dividerColor,
+                        child: const Center(
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
                         ),
-                  ),
-                  if (item.displayContentQuantity != null) ...[
-                    const SizedBox(width: 6),
-                    Text(
-                      '·',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.textTertiaryColor,
-                          ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      item.displayContentQuantity!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: _quantityColor(pct),
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                  ],
-                  if (item.category != null) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(
-                        item.category!,
+                      errorWidget: (_, __, ___) => Container(
+                        color: AppTheme.dividerColor,
+                        child: const Icon(Icons.inventory_2_outlined,
+                            size: 24, color: AppTheme.textSecondaryColor),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
+
+              // Main content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row: name, expiry badge, delete button
+                    Row(
+                      children: [
+                        if (item.storageLocation != null) ...[
+                          Icon(
+                            item.storageLocation!.iconData,
+                            size: 18,
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        Expanded(
+                          child: Text(
+                            item.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        if (item.expirationDate != null)
+                          _buildExpiryChip(context, item),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 20),
+                          onPressed: () => _deleteItem(context),
+                          color: AppTheme.errorColor,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Quantity info row
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => _editQuantity(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              border:
+                                  Border.all(color: AppTheme.dividerColor),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              item.displayQuantity,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
+                            ),
+                          ),
+                        ),
+                        if (item.displayContentQuantity != null) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            '·',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: AppTheme.textTertiaryColor,
+                                ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            item.displayContentQuantity!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: _quantityColor(pct),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ],
+                        if (item.category != null) ...[
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                item.category!,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: AppTheme.primaryColor,
+                                      fontSize: 10,
+                                    ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (item.isLowStock) ...[
+                          const SizedBox(width: 8),
+                          const Icon(Icons.trending_down,
+                              size: 14, color: AppTheme.secondaryColor),
+                          const SizedBox(width: 2),
+                          Text(
+                            'Low',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: AppTheme.secondaryColor,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ],
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Quantity slider
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SliderTheme(
+                            data: SliderThemeData(
+                              trackHeight: 6,
+                              thumbShape:
+                                  const RoundSliderThumbShape(
+                                      enabledThumbRadius: 8),
+                              activeTrackColor: _quantityColor(pct),
+                              inactiveTrackColor:
+                                  _quantityColor(pct).withValues(alpha: 0.2),
+                              thumbColor: _quantityColor(pct),
+                              overlayColor:
+                                  _quantityColor(pct).withValues(alpha: 0.1),
+                            ),
+                            child: Slider(
+                              value:
+                                  _sliderValue.clamp(0, item.sliderMax),
+                              min: 0,
+                              max: item.sliderMax,
+                              divisions: _sliderDivisions(item.sliderMax),
+                              onChanged: (value) {
+                                setState(() => _sliderValue = value);
+                              },
+                              onChangeEnd: (value) =>
+                                  _updateQuantity(value),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 48,
+                          child: Text(
+                            '${(pct * 100).toInt()}%',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: _quantityColor(pct),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    if (item.notes != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        item.notes!,
                         style:
                             Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.primaryColor,
-                                  fontSize: 10,
+                                  color: AppTheme.textTertiaryColor,
                                 ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
+                    ],
                   ],
-                  if (item.isLowStock) ...[
-                    const SizedBox(width: 8),
-                    const Icon(Icons.trending_down,
-                        size: 14, color: AppTheme.secondaryColor),
-                    const SizedBox(width: 2),
-                    Text(
-                      'Low',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.secondaryColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                  ],
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // Quantity slider
-              Row(
-                children: [
-                  Expanded(
-                    child: SliderTheme(
-                      data: SliderThemeData(
-                        trackHeight: 6,
-                        thumbShape:
-                            const RoundSliderThumbShape(enabledThumbRadius: 8),
-                        activeTrackColor: _quantityColor(pct),
-                        inactiveTrackColor:
-                            _quantityColor(pct).withValues(alpha: 0.2),
-                        thumbColor: _quantityColor(pct),
-                        overlayColor:
-                            _quantityColor(pct).withValues(alpha: 0.1),
-                      ),
-                      child: Slider(
-                        value: _sliderValue.clamp(0, item.sliderMax),
-                        min: 0,
-                        max: item.sliderMax,
-                        divisions: _sliderDivisions(item.sliderMax),
-                        onChanged: (value) {
-                          setState(() => _sliderValue = value);
-                        },
-                        onChangeEnd: (value) => _updateQuantity(value),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 48,
-                    child: Text(
-                      '${(pct * 100).toInt()}%',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: _quantityColor(pct),
-                            fontWeight: FontWeight.bold,
-                          ),
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                ],
-              ),
-
-              if (item.notes != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  item.notes!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppTheme.textTertiaryColor,
-                      ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
+              ),
             ],
           ),
         ),
@@ -247,7 +325,7 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
       label = '${days}d';
     } else {
       color = AppTheme.successColor;
-      label = DateFormat('dd/MM').format(item.expirationDate!);
+      label = DateFormat('dd/MM/yy').format(item.expirationDate!);
     }
 
     return Container(
@@ -266,6 +344,38 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
             ),
       ),
     );
+  }
+
+  Future<void> _editQuantity(BuildContext context) async {
+    final item = widget.item;
+    final newQuantity = await showDialog<int>(
+      context: context,
+      builder: (context) => EditQuantityDialog(
+        itemName: item.name,
+        quantity: item.quantity.toInt(),
+        unit: item.unit,
+      ),
+    );
+
+    if (newQuantity == null || newQuantity == item.quantity.toInt()) return;
+
+    Log.info('PantryItemCard',
+        'Updating piece quantity for "${item.name}" → $newQuantity');
+    try {
+      final service = ref.read(pantryServiceProvider);
+      await service.updateItem(
+        pantryId: widget.pantryId,
+        itemId: item.id,
+        quantity: newQuantity.toDouble(),
+        maxQuantity: newQuantity.toDouble(),
+      );
+      widget.onRefresh();
+    } catch (e) {
+      Log.error('PantryItemCard', 'Quantity edit failed', e);
+      if (context.mounted) {
+        showErrorSnackBar(context, e);
+      }
+    }
   }
 
   Future<void> _updateQuantity(double value) async {
