@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-03-11
+
+### Added
+- Structured logging service (`Log`) with debug/info/warn/error levels
+  - Logs all API requests and responses with method, path, and status
+  - Logs all state changes in providers (user, lists, favorites)
+  - Logs all user interactions (sign in, create list, add item, scan barcode, etc.)
+  - Only emits in debug mode — zero overhead in release builds
+- `AppException` typed error class with user-friendly messages
+  - Maps HTTP status codes to readable messages (401 → "Session expired", 500 → "Server error", etc.)
+  - Maps Dio connection errors to network messages
+  - Extracts server-side error messages when available
+- `showErrorSnackBar` / `showSuccessSnackBar` / `showInfoSnackBar` helpers
+  - Floating SnackBars with rounded corners matching app design
+- Dio interceptor logging for all HTTP traffic (request → response / error)
+
+### Changed
+- All services now throw `AppException` instead of generic `Exception`
+- Error SnackBars show user-friendly messages instead of raw `e.toString()`
+- Error states in screens show friendly text with "Try Again" buttons
+- Replaced `error_outline` icon with `cloud_off_outlined` for network errors
+- Updated `create_list_dialog` color palette to match new app theme colors
+- Regenerated Mockito mocks to fix stale `override_on_non_overriding_member` warning
+
 ## [0.3.0] - 2026-03-11
 
 ### Changed
@@ -174,7 +198,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/username/tote-bag/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/username/tote-bag/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/username/tote-bag/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/username/tote-bag/compare/v0.1.7...v0.2.0

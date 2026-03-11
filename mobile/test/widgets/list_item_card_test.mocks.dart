@@ -6,8 +6,7 @@
 import 'dart:async' as _i5;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i7;
-import 'package:tote_bag/models/product.dart' as _i8;
+import 'package:tote_bag/models/product.dart' as _i7;
 import 'package:tote_bag/models/shopping_list.dart' as _i2;
 import 'package:tote_bag/models/shopping_list_item.dart' as _i3;
 import 'package:tote_bag/services/favorite_service.dart' as _i6;
@@ -306,22 +305,13 @@ class MockFavoriteService extends _i1.Mock implements _i6.FavoriteService {
   }
 
   @override
-  String get baseUrl => (super.noSuchMethod(
-        Invocation.getter(#baseUrl),
-        returnValue: _i7.dummyValue<String>(
-          this,
-          Invocation.getter(#baseUrl),
-        ),
-      ) as String);
-
-  @override
-  _i5.Future<List<_i8.Product>> getFavorites() => (super.noSuchMethod(
+  _i5.Future<List<_i7.Product>> getFavorites() => (super.noSuchMethod(
         Invocation.method(
           #getFavorites,
           [],
         ),
-        returnValue: _i5.Future<List<_i8.Product>>.value(<_i8.Product>[]),
-      ) as _i5.Future<List<_i8.Product>>);
+        returnValue: _i5.Future<List<_i7.Product>>.value(<_i7.Product>[]),
+      ) as _i5.Future<List<_i7.Product>>);
 
   @override
   _i5.Future<void> addFavorite(String? productId) => (super.noSuchMethod(

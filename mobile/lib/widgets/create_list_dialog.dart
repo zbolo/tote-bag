@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/app_theme.dart';
 import '../providers/providers.dart';
+import '../services/logger.dart';
+import 'error_snackbar.dart';
 
 class CreateListDialog extends ConsumerStatefulWidget {
   const CreateListDialog({super.key});
@@ -18,14 +20,14 @@ class _CreateListDialogState extends ConsumerState<CreateListDialog> {
   bool _isLoading = false;
 
   final List<String> _availableColors = [
-    '#6366F1', // Indigo
-    '#8B5CF6', // Purple
-    '#EC4899', // Pink
-    '#F59E0B', // Amber
-    '#10B981', // Green
-    '#3B82F6', // Blue
-    '#EF4444', // Red
-    '#14B8A6', // Teal
+    '#1B6B4E', // Forest green (primary)
+    '#C47B62', // Terracotta (secondary)
+    '#BFA033', // Golden mustard (accent)
+    '#9CB5A0', // Sage light
+    '#9B9D6C', // Olive sage
+    '#6B8A85', // Teal grey
+    '#D4483E', // Warm red
+    '#3D9B6E', // Medium green
   ];
 
   @override
@@ -39,10 +41,12 @@ class _CreateListDialogState extends ConsumerState<CreateListDialog> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
+    final name = _nameController.text.trim();
+    Log.info('CreateListDialog', 'Creating list "$name"');
 
     try {
       await ref.read(shoppingListsProvider.notifier).createList(
-            name: _nameController.text.trim(),
+            name: name,
             description: _descriptionController.text.trim().isNotEmpty
                 ? _descriptionController.text.trim()
                 : null,
@@ -51,21 +55,12 @@ class _CreateListDialogState extends ConsumerState<CreateListDialog> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('List created successfully'),
-            backgroundColor: AppTheme.successColor,
-          ),
-        );
+        showSuccessSnackBar(context, 'List created successfully');
       }
     } catch (e) {
+      Log.error('CreateListDialog', 'Failed to create list "$name"', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     } finally {
       if (mounted) {

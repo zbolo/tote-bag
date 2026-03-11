@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/app_theme.dart';
 import '../models/shopping_list_item.dart';
 import '../providers/providers.dart';
+import '../services/logger.dart';
+import 'error_snackbar.dart';
 
 class ListItemCard extends ConsumerWidget {
   final ShoppingListItem item;
@@ -155,6 +157,7 @@ class ListItemCard extends ConsumerWidget {
   }
 
   Future<void> _toggleChecked(BuildContext context, WidgetRef ref) async {
+    Log.debug('ListItemCard', 'Toggling check on "${item.name}" → ${!item.isChecked}');
     try {
       final service = ref.read(shoppingListServiceProvider);
       await service.updateItem(
@@ -164,13 +167,9 @@ class ListItemCard extends ConsumerWidget {
       );
       onRefresh();
     } catch (e) {
+      Log.error('ListItemCard', 'Toggle check failed for "${item.name}"', e);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     }
   }
@@ -199,27 +198,19 @@ class ListItemCard extends ConsumerWidget {
 
     if (confirm != true) return;
 
+    Log.info('ListItemCard', 'Deleting item "${item.name}" (${item.id})');
     try {
       final service = ref.read(shoppingListServiceProvider);
       await service.deleteItem(listId: listId, itemId: item.id);
       onRefresh();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Item deleted'),
-            backgroundColor: AppTheme.successColor,
-          ),
-        );
+        showSuccessSnackBar(context, 'Item deleted');
       }
     } catch (e) {
+      Log.error('ListItemCard', 'Delete failed for "${item.name}"', e);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     }
   }
@@ -227,6 +218,7 @@ class ListItemCard extends ConsumerWidget {
   Future<void> _toggleFavorite(BuildContext context, WidgetRef ref) async {
     if (item.product == null) return;
 
+    Log.info('ListItemCard', 'Toggling favorite for "${item.product!.name}"');
     try {
       final favoritesNotifier = ref.read(favoriteProductsProvider.notifier);
       await favoritesNotifier.toggleFavorite(item.product!);
@@ -234,23 +226,16 @@ class ListItemCard extends ConsumerWidget {
 
       if (context.mounted) {
         final isFavorite = favoritesNotifier.isFavorite(item.product!.id);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                isFavorite ? 'Added to favorites' : 'Removed from favorites'),
-            backgroundColor: AppTheme.successColor,
-            duration: const Duration(seconds: 1),
-          ),
+        showSuccessSnackBar(
+          context,
+          isFavorite ? 'Added to favorites' : 'Removed from favorites',
+          duration: const Duration(seconds: 1),
         );
       }
     } catch (e) {
+      Log.error('ListItemCard', 'Toggle favorite failed', e);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     }
   }

@@ -1,7 +1,12 @@
+import 'package:dio/dio.dart';
 import '../config/api_config.dart';
 import '../models/shopping_list.dart';
 import '../models/shopping_list_item.dart';
 import 'api_client.dart';
+import 'app_exception.dart';
+import 'logger.dart';
+
+const _tag = 'ShoppingListService';
 
 class ShoppingListService {
   final ApiClient _apiClient;
@@ -9,6 +14,7 @@ class ShoppingListService {
   ShoppingListService(this._apiClient);
 
   Future<List<ShoppingList>> getLists() async {
+    Log.debug(_tag, 'Loading shopping lists');
     try {
       final response = await _apiClient.dio.get(ApiConfig.listsEndpoint);
 
@@ -16,28 +22,42 @@ class ShoppingListService {
         final lists = (response.data['data']['lists'] as List)
             .map((json) => ShoppingList.fromJson(json as Map<String, dynamic>))
             .toList();
+        Log.info(_tag, 'Loaded ${lists.length} shopping lists');
         return lists;
       }
+    } on DioException catch (e) {
+      final err = AppException.fromDio(e, context: 'Load lists');
+      Log.error(_tag, err.toString(), e);
+      throw err;
     } catch (e) {
-      throw Exception('Failed to load lists: $e');
+      Log.error(_tag, 'Unexpected error loading lists', e);
+      throw AppException.from(e, context: 'Load lists');
     }
     return [];
   }
 
   Future<ShoppingList> getListById(String listId) async {
+    Log.debug(_tag, 'Loading list $listId');
     try {
       final response =
           await _apiClient.dio.get('${ApiConfig.listsEndpoint}/$listId');
 
       if (response.statusCode == 200 && response.data['status'] == 'success') {
-        return ShoppingList.fromJson(
+        final list = ShoppingList.fromJson(
           response.data['data']['list'] as Map<String, dynamic>,
         );
+        Log.info(_tag, 'Loaded list "${list.name}" (${list.items.length} items)');
+        return list;
       }
+    } on DioException catch (e) {
+      final err = AppException.fromDio(e, context: 'Load list');
+      Log.error(_tag, err.toString(), e);
+      throw err;
     } catch (e) {
-      throw Exception('Failed to load list: $e');
+      Log.error(_tag, 'Unexpected error loading list $listId', e);
+      throw AppException.from(e, context: 'Load list');
     }
-    throw Exception('Failed to load list');
+    throw const AppException('Could not load this list. Please try again.');
   }
 
   Future<ShoppingList> createList({
@@ -46,6 +66,7 @@ class ShoppingListService {
     String? color,
     String? icon,
   }) async {
+    Log.info(_tag, 'Creating list "$name"');
     try {
       final response = await _apiClient.dio.post(
         ApiConfig.listsEndpoint,
@@ -58,14 +79,21 @@ class ShoppingListService {
       );
 
       if (response.statusCode == 201 && response.data['status'] == 'success') {
-        return ShoppingList.fromJson(
+        final list = ShoppingList.fromJson(
           response.data['data']['list'] as Map<String, dynamic>,
         );
+        Log.info(_tag, 'Created list "${list.name}" (${list.id})');
+        return list;
       }
+    } on DioException catch (e) {
+      final err = AppException.fromDio(e, context: 'Create list');
+      Log.error(_tag, err.toString(), e);
+      throw err;
     } catch (e) {
-      throw Exception('Failed to create list: $e');
+      Log.error(_tag, 'Unexpected error creating list', e);
+      throw AppException.from(e, context: 'Create list');
     }
-    throw Exception('Failed to create list');
+    throw const AppException('Could not create the list. Please try again.');
   }
 
   Future<ShoppingList> updateList({
@@ -75,6 +103,7 @@ class ShoppingListService {
     String? color,
     String? icon,
   }) async {
+    Log.info(_tag, 'Updating list $listId');
     try {
       final data = <String, dynamic>{};
       if (name != null) data['name'] = name;
@@ -88,26 +117,42 @@ class ShoppingListService {
       );
 
       if (response.statusCode == 200 && response.data['status'] == 'success') {
-        return ShoppingList.fromJson(
+        final list = ShoppingList.fromJson(
           response.data['data']['list'] as Map<String, dynamic>,
         );
+        Log.info(_tag, 'Updated list "${list.name}"');
+        return list;
       }
+    } on DioException catch (e) {
+      final err = AppException.fromDio(e, context: 'Update list');
+      Log.error(_tag, err.toString(), e);
+      throw err;
     } catch (e) {
-      throw Exception('Failed to update list: $e');
+      Log.error(_tag, 'Unexpected error updating list', e);
+      throw AppException.from(e, context: 'Update list');
     }
-    throw Exception('Failed to update list');
+    throw const AppException('Could not update the list. Please try again.');
   }
 
   Future<void> deleteList(String listId) async {
+    Log.info(_tag, 'Deleting list $listId');
     try {
       final response =
           await _apiClient.dio.delete('${ApiConfig.listsEndpoint}/$listId');
 
       if (response.statusCode != 204) {
-        throw Exception('Failed to delete list');
+        throw const AppException('Could not delete the list. Please try again.');
       }
+      Log.info(_tag, 'Deleted list $listId');
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      final err = AppException.fromDio(e, context: 'Delete list');
+      Log.error(_tag, err.toString(), e);
+      throw err;
     } catch (e) {
-      throw Exception('Failed to delete list: $e');
+      Log.error(_tag, 'Unexpected error deleting list', e);
+      throw AppException.from(e, context: 'Delete list');
     }
   }
 
@@ -121,6 +166,7 @@ class ShoppingListService {
     String? barcode,
     String? productId,
   }) async {
+    Log.info(_tag, 'Adding item "$name" to list $listId');
     try {
       final response = await _apiClient.dio.post(
         '${ApiConfig.listsEndpoint}/$listId/items',
@@ -136,14 +182,21 @@ class ShoppingListService {
       );
 
       if (response.statusCode == 201 && response.data['status'] == 'success') {
-        return ShoppingListItem.fromJson(
+        final item = ShoppingListItem.fromJson(
           response.data['data']['item'] as Map<String, dynamic>,
         );
+        Log.info(_tag, 'Added item "${item.name}" (${item.id})');
+        return item;
       }
+    } on DioException catch (e) {
+      final err = AppException.fromDio(e, context: 'Add item');
+      Log.error(_tag, err.toString(), e);
+      throw err;
     } catch (e) {
-      throw Exception('Failed to add item: $e');
+      Log.error(_tag, 'Unexpected error adding item', e);
+      throw AppException.from(e, context: 'Add item');
     }
-    throw Exception('Failed to add item');
+    throw const AppException('Could not add the item. Please try again.');
   }
 
   Future<ShoppingListItem> updateItem({
@@ -157,6 +210,7 @@ class ShoppingListService {
     String? category,
     int? order,
   }) async {
+    Log.debug(_tag, 'Updating item $itemId in list $listId');
     try {
       final data = <String, dynamic>{};
       if (name != null) data['name'] = name;
@@ -173,30 +227,46 @@ class ShoppingListService {
       );
 
       if (response.statusCode == 200 && response.data['status'] == 'success') {
-        return ShoppingListItem.fromJson(
+        final item = ShoppingListItem.fromJson(
           response.data['data']['item'] as Map<String, dynamic>,
         );
+        Log.debug(_tag, 'Updated item "${item.name}"');
+        return item;
       }
+    } on DioException catch (e) {
+      final err = AppException.fromDio(e, context: 'Update item');
+      Log.error(_tag, err.toString(), e);
+      throw err;
     } catch (e) {
-      throw Exception('Failed to update item: $e');
+      Log.error(_tag, 'Unexpected error updating item', e);
+      throw AppException.from(e, context: 'Update item');
     }
-    throw Exception('Failed to update item');
+    throw const AppException('Could not update the item. Please try again.');
   }
 
   Future<void> deleteItem({
     required String listId,
     required String itemId,
   }) async {
+    Log.info(_tag, 'Deleting item $itemId from list $listId');
     try {
       final response = await _apiClient.dio.delete(
         '${ApiConfig.listsEndpoint}/$listId/items/$itemId',
       );
 
       if (response.statusCode != 204) {
-        throw Exception('Failed to delete item');
+        throw const AppException('Could not delete the item. Please try again.');
       }
+      Log.info(_tag, 'Deleted item $itemId');
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      final err = AppException.fromDio(e, context: 'Delete item');
+      Log.error(_tag, err.toString(), e);
+      throw err;
     } catch (e) {
-      throw Exception('Failed to delete item: $e');
+      Log.error(_tag, 'Unexpected error deleting item', e);
+      throw AppException.from(e, context: 'Delete item');
     }
   }
 
@@ -205,6 +275,7 @@ class ShoppingListService {
     required String email,
     required String permission,
   }) async {
+    Log.info(_tag, 'Sharing list $listId with $email ($permission)');
     try {
       final response = await _apiClient.dio.post(
         '${ApiConfig.listsEndpoint}/$listId/share',
@@ -215,10 +286,18 @@ class ShoppingListService {
       );
 
       if (response.statusCode != 201) {
-        throw Exception('Failed to share list');
+        throw const AppException('Could not share the list. Please try again.');
       }
+      Log.info(_tag, 'Shared list $listId with $email');
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      final err = AppException.fromDio(e, context: 'Share list');
+      Log.error(_tag, err.toString(), e);
+      throw err;
     } catch (e) {
-      throw Exception('Failed to share list: $e');
+      Log.error(_tag, 'Unexpected error sharing list', e);
+      throw AppException.from(e, context: 'Share list');
     }
   }
 }

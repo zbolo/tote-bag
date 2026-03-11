@@ -4,6 +4,8 @@ import '../services/auth_service.dart';
 import '../services/shopping_list_service.dart';
 import '../services/product_service.dart';
 import '../services/favorite_service.dart';
+import '../services/app_exception.dart';
+import '../services/logger.dart';
 import '../models/user.dart';
 import '../models/shopping_list.dart';
 import '../models/product.dart';
@@ -35,6 +37,7 @@ final currentUserProvider =
 
 class CurrentUserNotifier extends StateNotifier<AsyncValue<User?>> {
   final AuthService _authService;
+  static const _tag = 'CurrentUserNotifier';
 
   CurrentUserNotifier(this._authService) : super(const AsyncValue.loading()) {
     _loadUser();
@@ -44,22 +47,27 @@ class CurrentUserNotifier extends StateNotifier<AsyncValue<User?>> {
     state = const AsyncValue.loading();
     try {
       final user = await _authService.getCurrentUser();
+      Log.info(_tag, 'User state → ${user?.displayName ?? 'not signed in'}');
       state = AsyncValue.data(user);
     } catch (error, stackTrace) {
+      Log.error(_tag, 'Failed to load user', error, stackTrace);
       state = AsyncValue.error(error, stackTrace);
     }
   }
 
   Future<void> signIn(String email, String password) async {
+    Log.info(_tag, 'Sign in flow started for $email');
     final result = await _authService.signIn(email: email, password: password);
     if (result['success'] == true) {
       await _loadUser();
     } else {
-      throw Exception(result['message'] ?? 'Sign in failed');
+      final message = result['message'] ?? 'Sign in failed';
+      throw AppException(message);
     }
   }
 
   Future<void> signUp(String email, String password, String displayName) async {
+    Log.info(_tag, 'Sign up flow started for $email');
     final result = await _authService.signUp(
       email: email,
       password: password,
@@ -68,13 +76,16 @@ class CurrentUserNotifier extends StateNotifier<AsyncValue<User?>> {
     if (result['success'] == true) {
       await _loadUser();
     } else {
-      throw Exception(result['message'] ?? 'Sign up failed');
+      final message = result['message'] ?? 'Sign up failed';
+      throw AppException(message);
     }
   }
 
   Future<void> signOut() async {
+    Log.info(_tag, 'Sign out flow started');
     await _authService.signOut();
     state = const AsyncValue.data(null);
+    Log.info(_tag, 'User signed out');
   }
 
   Future<void> refresh() async {
@@ -91,6 +102,7 @@ final shoppingListsProvider = StateNotifierProvider<ShoppingListsNotifier,
 class ShoppingListsNotifier
     extends StateNotifier<AsyncValue<List<ShoppingList>>> {
   final ShoppingListService _service;
+  static const _tag = 'ShoppingListsNotifier';
 
   ShoppingListsNotifier(this._service) : super(const AsyncValue.loading()) {
     loadLists();
@@ -100,8 +112,10 @@ class ShoppingListsNotifier
     state = const AsyncValue.loading();
     try {
       final lists = await _service.getLists();
+      Log.info(_tag, 'State updated: ${lists.length} lists');
       state = AsyncValue.data(lists);
     } catch (error, stackTrace) {
+      Log.error(_tag, 'Failed to load lists', error, stackTrace);
       state = AsyncValue.error(error, stackTrace);
     }
   }
@@ -173,6 +187,7 @@ final favoriteProductsProvider =
 class FavoriteProductsNotifier
     extends StateNotifier<AsyncValue<List<Product>>> {
   final FavoriteService _service;
+  static const _tag = 'FavoriteProductsNotifier';
 
   FavoriteProductsNotifier(this._service) : super(const AsyncValue.loading()) {
     loadFavorites();
@@ -182,8 +197,10 @@ class FavoriteProductsNotifier
     state = const AsyncValue.loading();
     try {
       final favorites = await _service.getFavorites();
+      Log.info(_tag, 'State updated: ${favorites.length} favorites');
       state = AsyncValue.data(favorites);
     } catch (error, stackTrace) {
+      Log.error(_tag, 'Failed to load favorites', error, stackTrace);
       state = AsyncValue.error(error, stackTrace);
     }
   }

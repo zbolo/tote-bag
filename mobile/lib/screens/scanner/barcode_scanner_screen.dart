@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:go_router/go_router.dart';
-import '../../config/app_theme.dart';
 import '../../providers/providers.dart';
+import '../../services/logger.dart';
+import '../../widgets/error_snackbar.dart';
 import '../../models/product.dart';
 
 class BarcodeScannerScreen extends ConsumerStatefulWidget {
@@ -22,6 +23,7 @@ class BarcodeScannerScreen extends ConsumerStatefulWidget {
 class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
   MobileScannerController? _controller;
   bool _isProcessing = false;
+  static const _tag = 'BarcodeScanner';
 
   @override
   void initState() {
@@ -29,6 +31,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
     _controller = MobileScannerController(
       detectionSpeed: DetectionSpeed.noDuplicates,
     );
+    Log.info(_tag, 'Scanner opened for list ${widget.listId}');
   }
 
   @override
@@ -47,6 +50,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
     if (barcode.rawValue == null) return;
 
     setState(() => _isProcessing = true);
+    Log.info(_tag, 'Barcode detected: ${barcode.rawValue}');
 
     try {
       final productService = ref.read(productServiceProvider);
@@ -56,18 +60,16 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
       if (!mounted) return;
 
       if (product != null) {
+        Log.info(_tag, 'Product found: "${product.name}"');
         await _showProductDialog(product);
       } else {
+        Log.info(_tag, 'Product not found, showing manual entry');
         await _showManualEntryDialog(barcode.rawValue!);
       }
     } catch (e) {
+      Log.error(_tag, 'Error processing barcode ${barcode.rawValue}', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     } finally {
       if (mounted) {
@@ -168,6 +170,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
   }
 
   Future<void> _addProductToList(Product product) async {
+    Log.info(_tag, 'Adding scanned product "${product.name}" to list');
     try {
       final service = ref.read(shoppingListServiceProvider);
       await service.addItem(
@@ -180,27 +183,18 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
 
       if (mounted) {
         ref.invalidate(shoppingListProvider(widget.listId));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${product.name} added to list'),
-            backgroundColor: AppTheme.successColor,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        showSuccessSnackBar(context, '${product.name} added to list');
       }
     } catch (e) {
+      Log.error(_tag, 'Failed to add product "${product.name}"', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error adding item: ${e.toString()}'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     }
   }
 
   Future<void> _addManualItem(String name, String barcode) async {
+    Log.info(_tag, 'Adding manual item "$name" (barcode: $barcode)');
     try {
       final service = ref.read(shoppingListServiceProvider);
       await service.addItem(
@@ -211,22 +205,12 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
 
       if (mounted) {
         ref.invalidate(shoppingListProvider(widget.listId));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$name added to list'),
-            backgroundColor: AppTheme.successColor,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        showSuccessSnackBar(context, '$name added to list');
       }
     } catch (e) {
+      Log.error(_tag, 'Failed to add manual item "$name"', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error adding item: ${e.toString()}'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     }
   }

@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/app_theme.dart';
 import '../../providers/providers.dart';
+import '../../services/logger.dart';
 import '../../widgets/list_card.dart';
 import '../../widgets/create_list_dialog.dart';
+import '../../widgets/error_snackbar.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -21,6 +23,7 @@ class HomeScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
+              Log.debug('HomeScreen', 'Manual refresh tapped');
               ref.read(shoppingListsProvider.notifier).loadLists();
             },
           ),
@@ -35,6 +38,7 @@ class HomeScreen extends ConsumerWidget {
                   ],
                 ),
                 onTap: () {
+                  Log.info('HomeScreen', 'Sign out tapped');
                   ref.read(currentUserProvider.notifier).signOut();
                 },
               ),
@@ -136,7 +140,10 @@ class HomeScreen extends ConsumerWidget {
                           final list = lists[index];
                           return ListCard(
                             list: list,
-                            onTap: () => context.push('/list/${list.id}'),
+                            onTap: () {
+                              Log.debug('HomeScreen', 'Navigating to list "${list.name}" (${list.id})');
+                              context.push('/list/${list.id}');
+                            },
                           );
                         },
                       );
@@ -144,35 +151,41 @@ class HomeScreen extends ConsumerWidget {
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
                     error: (error, stack) => Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: AppTheme.errorColor,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Error loading lists',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            error.toString(),
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              ref
-                                  .read(shoppingListsProvider.notifier)
-                                  .loadLists();
-                            },
-                            child: const Text('Retry'),
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.cloud_off_outlined,
+                              size: 64,
+                              color: AppTheme.textTertiaryColor,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Could not load your lists',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              friendlyErrorMessage(error),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                ref
+                                    .read(shoppingListsProvider.notifier)
+                                    .loadLists();
+                              },
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Try Again'),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -182,7 +195,27 @@ class HomeScreen extends ConsumerWidget {
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) => Center(
-            child: Text('Error: $error'),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.cloud_off_outlined,
+                    size: 64,
+                    color: AppTheme.textTertiaryColor,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    friendlyErrorMessage(error),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.textSecondaryColor,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

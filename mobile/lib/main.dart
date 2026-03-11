@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'config/app_theme.dart';
 import 'config/router.dart';
+import 'services/logger.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  Log.info('App', 'Tote Bag starting');
+
   runApp(
     const ProviderScope(
       child: ToteBagApp(),

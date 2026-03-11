@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/app_theme.dart';
 import '../../providers/providers.dart';
+import '../../services/logger.dart';
+import '../../widgets/error_snackbar.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -34,6 +36,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
+    Log.info('SignUpScreen', 'Sign up tapped for ${_emailController.text.trim()}');
 
     try {
       await ref.read(currentUserProvider.notifier).signUp(
@@ -41,14 +44,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             _passwordController.text,
             _displayNameController.text.trim(),
           );
+      Log.info('SignUpScreen', 'Sign up succeeded');
     } catch (e) {
+      Log.error('SignUpScreen', 'Sign up failed', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     } finally {
       if (mounted) {

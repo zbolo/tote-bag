@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/app_theme.dart';
 import '../../providers/providers.dart';
+import '../../services/logger.dart';
 import '../../widgets/list_item_card.dart';
 import '../../widgets/add_item_dialog.dart';
 import '../../widgets/product_grid_item.dart';
+import '../../widgets/error_snackbar.dart';
 import '../../models/product.dart';
 
 class ListDetailScreen extends ConsumerWidget {
@@ -35,11 +37,7 @@ class ListDetailScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
-              // TODO: Implement share functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Share functionality coming soon')),
-              );
+              showInfoSnackBar(context, 'Share functionality coming soon');
             },
           ),
         ],
@@ -156,12 +154,12 @@ class ListDetailScreen extends ConsumerWidget {
                               const Center(child: CircularProgressIndicator()),
                           error: (_, __) => Center(
                             child: Text(
-                              'Failed to load favorites',
+                              'Could not load favorites',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
                                   ?.copyWith(
-                                    color: AppTheme.errorColor,
+                                    color: AppTheme.textSecondaryColor,
                                   ),
                             ),
                           ),
@@ -292,26 +290,37 @@ class ListDetailScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                size: 64,
-                color: AppTheme.errorColor,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Error loading list',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error.toString(),
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.cloud_off_outlined,
+                  size: 64,
+                  color: AppTheme.textTertiaryColor,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Could not load this list',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  friendlyErrorMessage(error),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.textSecondaryColor,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () => ref.invalidate(shoppingListProvider(listId)),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try Again'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -333,22 +342,15 @@ class ListDetailScreen extends ConsumerWidget {
     Product product,
     bool isInList,
   ) async {
+    if (isInList) {
+      showInfoSnackBar(context, '${product.name} is already in your list',
+          duration: const Duration(seconds: 1));
+      return;
+    }
+
+    Log.info('ListDetailScreen', 'Quick adding "${product.name}" to list $listId');
     try {
       final service = ref.read(shoppingListServiceProvider);
-
-      if (isInList) {
-        // Show snackbar that item is already in list
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${product.name} is already in your list'),
-            duration: const Duration(seconds: 1),
-            backgroundColor: AppTheme.textSecondaryColor,
-          ),
-        );
-        return;
-      }
-
-      // Add the product to the list
       await service.addItem(
         listId: listId,
         name: product.name,
@@ -358,26 +360,16 @@ class ListDetailScreen extends ConsumerWidget {
         category: product.category,
       );
 
-      // Refresh the list
       ref.invalidate(shoppingListProvider(listId));
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Added ${product.name} to list'),
-            duration: const Duration(seconds: 1),
-            backgroundColor: AppTheme.successColor,
-          ),
-        );
+        showSuccessSnackBar(context, 'Added ${product.name} to list',
+            duration: const Duration(seconds: 1));
       }
     } catch (e) {
+      Log.error('ListDetailScreen', 'Quick add failed for "${product.name}"', e);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     }
   }

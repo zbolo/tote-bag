@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/app_theme.dart';
 import '../providers/providers.dart';
+import '../services/logger.dart';
+import 'error_snackbar.dart';
 
 class AddItemDialog extends ConsumerStatefulWidget {
   final String listId;
@@ -38,12 +40,14 @@ class _AddItemDialogState extends ConsumerState<AddItemDialog> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
+    final name = _nameController.text.trim();
+    Log.info('AddItemDialog', 'Adding item "$name" to list ${widget.listId}');
 
     try {
       final service = ref.read(shoppingListServiceProvider);
       await service.addItem(
         listId: widget.listId,
-        name: _nameController.text.trim(),
+        name: name,
         quantity: int.tryParse(_quantityController.text) ?? 1,
         unit: _unitController.text.trim().isNotEmpty ? _unitController.text.trim() : null,
         notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
@@ -61,13 +65,9 @@ class _AddItemDialogState extends ConsumerState<AddItemDialog> {
         );
       }
     } catch (e) {
+      Log.error('AddItemDialog', 'Failed to add item "$name"', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     } finally {
       if (mounted) {

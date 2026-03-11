@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/app_theme.dart';
 import '../../providers/providers.dart';
+import '../../services/logger.dart';
+import '../../widgets/error_snackbar.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -29,20 +31,18 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
+    Log.info('SignInScreen', 'Sign in tapped for ${_emailController.text.trim()}');
 
     try {
       await ref.read(currentUserProvider.notifier).signIn(
             _emailController.text.trim(),
             _passwordController.text,
           );
+      Log.info('SignInScreen', 'Sign in succeeded, navigating to home');
     } catch (e) {
+      Log.error('SignInScreen', 'Sign in failed', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     } finally {
       if (mounted) {
