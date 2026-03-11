@@ -33,9 +33,16 @@ export const errorHandler = (err, _req, res, _next) => {
   }
 
   if (err instanceof ZodError) {
+    // Build a human-readable summary from Zod issues
+    const fieldMessages = err.errors.map((e) => {
+      const field = e.path.join('.');
+      return field ? `${field}: ${e.message}` : e.message;
+    });
+    const summary = fieldMessages.join('; ');
+
     return res.status(400).json({
       status: 'error',
-      message: 'Validation error',
+      message: summary,
       errors: err.errors,
     });
   }
