@@ -2,10 +2,11 @@ import supertokens from 'supertokens-node';
 import Session from 'supertokens-node/recipe/session/index.js';
 import EmailPassword from 'supertokens-node/recipe/emailpassword/index.js';
 import Dashboard from 'supertokens-node/recipe/dashboard/index.js';
-import { getEmailPasswordOverride } from '../hooks/supertokens.js';
+import UserMetadata from 'supertokens-node/recipe/usermetadata/index.js';
 
 /**
  * Initialize Supertokens authentication
+ * Sign-up is disabled - only admins can create users via SuperTokens Dashboard
  * @returns {void}
  */
 export function initSupertokens() {
@@ -25,32 +26,28 @@ export function initSupertokens() {
       websiteBasePath: '/auth',
     },
     recipeList: [
+      Dashboard.init({
+        apiKey: process.env.SUPERTOKENS_API_KEY || 'supertokens-dashboard-key',
+      }),
       EmailPassword.init({
         signUpFeature: {
-          formFields: [
-            {
-              id: 'displayName',
-              optional: false,
-            },
-          ],
+          disableDefaultImplementation: true,
         },
-        // Override signup to create user in our database
-        override: getEmailPasswordOverride(),
+        override: {
+          apis: (originalImplementation) => {
+            return {
+              ...originalImplementation,
+              signUpPOST: undefined,
+            };
+          },
+        },
       }),
       Session.init({
         getTokenTransferMethod: () => 'header',
       }),
-      Dashboard.init({
-        // Uncomment to enable dashboard authentication
-        // admins: [
-        //   {
-        //     email: "admin@example.com",
-        //     password: "admin123",
-        //   },
-        // ],
-      }),
+      UserMetadata.init(),
     ],
   });
 
-  console.log('[SuperTokens] Initialization complete');
+  console.log('[SuperTokens] Initialization complete (signup disabled, header-based sessions)');
 }

@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-03-11
+
+### Added
+- Change password endpoint (`POST /auth/change-password`) with current password verification
+- Auth health check endpoint (`GET /auth/health`)
+- Production Docker Compose configuration (`docker-compose.prod.yml`) with health checks, restart policies, and named volumes
+- pgAdmin service in development Docker Compose for database management (port 8081)
+- Docker health checks for all services (backend, postgres, supertokens)
+- OpenAPI 3.0.3 specification with Swagger UI served at `/api-docs`
+- Environment validation on startup (fails fast in production if secrets are missing)
+- UserMetadata SuperTokens recipe
+
+### Changed
+- **BREAKING**: Upgraded SuperTokens from v20 to v24 (supertokens-node ^24.0.1)
+- **BREAKING**: Upgraded Express from v4 to v5 (express ^5.2.1)
+- **BREAKING**: Disabled user sign-up - users must be created by admin via SuperTokens Dashboard
+- Upgraded SuperTokens Docker image from `latest` to pinned `11.4`
+- Upgraded express-rate-limit from ^7.4.1 to ^8.3.0
+- Added swagger-ui-express and yamljs dependencies for API documentation
+- Improved structured logging with `[Module]` prefix throughout backend
+- Graceful shutdown now properly closes database connections
+
+### Removed
+- Sign-up functionality (temporarily disabled, to be re-enabled later)
+- JWT_SECRET environment variable (not needed with SuperTokens session management)
+
 ## [0.1.7] - 2026-03-11
 
 ### Fixed
@@ -128,7 +154,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/username/tote-bag/compare/v0.1.7...v0.2.0
+[0.1.7]: https://github.com/username/tote-bag/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/username/tote-bag/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/username/tote-bag/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/username/tote-bag/compare/v0.1.3...v0.1.4

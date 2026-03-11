@@ -1,0 +1,102 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tote-bag-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tote-bag-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: always
+
+  supertokens:
+    image: registry.supertokens.io/supertokens/supertokens-postgresql:11.4
+    container_name: tote-bag-supertokens
+    environment:
+      POSTGRESQL_USER: ${POSTGRES_USER}
+      POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRESQL_DATABASE_NAME: ${POSTGRES_DB}
+      POSTGRESQL_HOST: postgres
+      POSTGRESQL_PORT: "5432"
+      SUPERTOKENS_API_KEY: ${SUPERTOKENS_API_KEY}
+    ports:
+      - "127.0.0.1:3567:3567"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tote-bag-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3567/hello"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  backend:
+    image: tote-bag-backend:latest
+    container_name: tote-bag-backend
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      SUPERTOKENS_CONNECTION_URI: http://supertokens:3567
+      SUPERTOKENS_API_KEY: ${SUPERTOKENS_API_KEY}
+      API_DOMAIN: ${API_DOMAIN}
+      WEBSITE_DOMAIN: ${WEBSITE_DOMAIN}
+      OPENFOODFACTS_API_URL: https://world.openfoodfacts.org/api/v2
+    ports:
+      - "127.0.0.1:3333:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      supertokens:
+        condition: service_healthy
+    networks:
+      - tote-bag-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: tote-bag-pgadmin
+    user: root
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "127.0.0.1:8081:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tote-bag-network
+    restart: always
+
+networks:
+  tote-bag-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  pgadmin_data:

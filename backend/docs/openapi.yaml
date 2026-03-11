@@ -1,0 +1,1056 @@
+openapi: 3.0.3
+info:
+  title: Tote Bag API
+  description: |
+    Backend API for Tote Bag - a grocery shopping assistant with shared lists and barcode scanning.
+
+    ## Authentication
+    Authentication is handled by SuperTokens using header-based sessions.
+    Sign-up is disabled - users are created by admins via the SuperTokens Dashboard.
+    After signing in via `POST /auth/signin`, include the session tokens in subsequent requests.
+
+    ## SuperTokens Automatic Routes
+    These routes are handled automatically by SuperTokens middleware:
+    - `POST /auth/signin` - Sign in with email and password
+    - `POST /auth/signout` - Sign out current session
+    - `POST /auth/session/refresh` - Refresh session tokens
+  version: 0.2.0
+  contact:
+    name: Tote Bag Team
+
+servers:
+  - url: http://localhost:3333
+    description: Development server (Docker)
+  - url: http://localhost:3000
+    description: Local development server
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Auth
+    description: Authentication endpoints
+  - name: Users
+    description: User profile management
+  - name: Shopping Lists
+    description: Shopping list CRUD and sharing
+  - name: Products
+    description: Product search and barcode lookup
+  - name: Favorites
+    description: Favorite products management
+  - name: Admin
+    description: Administrative endpoints
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: SuperTokens session token (Bearer token)
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Something went wrong
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        avatarUrl:
+          type: string
+          format: uri
+          nullable: true
+        supertokensUserId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ShoppingList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+          pattern: "^#[0-9A-Fa-f]{6}$"
+        icon:
+          type: string
+          nullable: true
+        owner:
+          $ref: "#/components/schemas/User"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ShoppingListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        quantity:
+          type: number
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        isChecked:
+          type: boolean
+        category:
+          type: string
+          nullable: true
+        barcode:
+          type: string
+          nullable: true
+        order:
+          type: integer
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        barcode:
+          type: string
+        brand:
+          type: string
+          nullable: true
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+        category:
+          type: string
+          nullable: true
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: General health check
+      description: Returns the health status of the API server.
+      responses:
+        "200":
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /auth/health:
+    get:
+      tags: [Auth]
+      summary: Auth service health check
+      description: Returns the health status of the authentication service.
+      responses:
+        "200":
+          description: Auth service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: auth
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /auth/change-password:
+    post:
+      tags: [Auth]
+      summary: Change password
+      description: Change the current user's password. Requires the current password for verification.
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                  description: The user's current password
+                newPassword:
+                  type: string
+                  minLength: 8
+                  description: The new password (minimum 8 characters)
+            example:
+              currentPassword: "oldPassword123"
+              newPassword: "newSecurePassword456"
+      responses:
+        "200":
+          description: Password updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Password updated successfully
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Current password is incorrect
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/users/me:
+    get:
+      tags: [Users]
+      summary: Get current user profile
+      description: Returns the authenticated user's profile information.
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+        "404":
+          description: User not found in database
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      tags: [Users]
+      summary: Update current user profile
+      description: Update the authenticated user's display name or avatar URL.
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                avatarUrl:
+                  type: string
+                  format: uri
+                  nullable: true
+            example:
+              displayName: "John Doe"
+      responses:
+        "200":
+          description: User profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+
+  /api/v1/users/search:
+    get:
+      tags: [Users]
+      summary: Search users
+      description: Search users by email or display name. Used for sharing lists.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          description: Search query (email or display name)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: Maximum number of results
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/User"
+
+  /api/v1/lists:
+    get:
+      tags: [Shopping Lists]
+      summary: Get all shopping lists
+      description: Returns all shopping lists owned by or shared with the authenticated user.
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Lists retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      lists:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ShoppingList"
+    post:
+      tags: [Shopping Lists]
+      summary: Create a new shopping list
+      description: Create a new shopping list owned by the authenticated user.
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                color:
+                  type: string
+                  pattern: "^#[0-9A-Fa-f]{6}$"
+                  nullable: true
+                icon:
+                  type: string
+                  maxLength: 50
+                  nullable: true
+            example:
+              name: "Weekly Groceries"
+              color: "#4CAF50"
+      responses:
+        "201":
+          description: List created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      list:
+                        $ref: "#/components/schemas/ShoppingList"
+
+  /api/v1/lists/{listId}:
+    get:
+      tags: [Shopping Lists]
+      summary: Get a specific shopping list
+      description: Returns a specific shopping list with its items.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      list:
+                        $ref: "#/components/schemas/ShoppingList"
+        "404":
+          description: List not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      tags: [Shopping Lists]
+      summary: Update a shopping list
+      description: Update shopping list properties (name, description, color, icon).
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                color:
+                  type: string
+                  pattern: "^#[0-9A-Fa-f]{6}$"
+                  nullable: true
+                icon:
+                  type: string
+                  maxLength: 50
+                  nullable: true
+      responses:
+        "200":
+          description: List updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      list:
+                        $ref: "#/components/schemas/ShoppingList"
+    delete:
+      tags: [Shopping Lists]
+      summary: Delete a shopping list
+      description: Delete a shopping list. Only the owner can delete a list.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: List deleted
+
+  /api/v1/lists/{listId}/items:
+    post:
+      tags: [Shopping Lists]
+      summary: Add an item to a shopping list
+      description: Add a new item to an existing shopping list.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                quantity:
+                  type: number
+                  nullable: true
+                unit:
+                  type: string
+                  maxLength: 50
+                  nullable: true
+                notes:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                category:
+                  type: string
+                  maxLength: 100
+                  nullable: true
+                barcode:
+                  type: string
+                  maxLength: 50
+                  nullable: true
+                productId:
+                  type: string
+                  format: uuid
+                  nullable: true
+            example:
+              name: "Organic Milk"
+              quantity: 2
+              unit: "liters"
+              category: "Dairy"
+      responses:
+        "201":
+          description: Item added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      item:
+                        $ref: "#/components/schemas/ShoppingListItem"
+
+  /api/v1/lists/{listId}/items/{itemId}:
+    patch:
+      tags: [Shopping Lists]
+      summary: Update a shopping list item
+      description: Update properties of an existing shopping list item.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                quantity:
+                  type: number
+                  nullable: true
+                unit:
+                  type: string
+                  maxLength: 50
+                  nullable: true
+                notes:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                isChecked:
+                  type: boolean
+                category:
+                  type: string
+                  maxLength: 100
+                  nullable: true
+                order:
+                  type: integer
+                  minimum: 0
+      responses:
+        "200":
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      item:
+                        $ref: "#/components/schemas/ShoppingListItem"
+    delete:
+      tags: [Shopping Lists]
+      summary: Delete a shopping list item
+      description: Remove an item from a shopping list.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Item deleted
+
+  /api/v1/lists/{listId}/share:
+    post:
+      tags: [Shopping Lists]
+      summary: Share a shopping list
+      description: Share a shopping list with another user by their email address.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, permission]
+              properties:
+                email:
+                  type: string
+                  format: email
+                permission:
+                  type: string
+                  enum: [read, write]
+            example:
+              email: "friend@example.com"
+              permission: "write"
+      responses:
+        "201":
+          description: List shared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      share:
+                        type: object
+
+  /api/v1/lists/{listId}/share/{userId}:
+    delete:
+      tags: [Shopping Lists]
+      summary: Unshare a shopping list
+      description: Remove sharing access for a user from a shopping list.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Share removed
+
+  /api/v1/products/barcode/{barcode}:
+    get:
+      tags: [Products]
+      summary: Get product by barcode
+      description: Look up a product by its barcode. Uses OpenFoodFacts API with local caching.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: barcode
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Product barcode (EAN/UPC)
+      responses:
+        "200":
+          description: Product found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      product:
+                        $ref: "#/components/schemas/Product"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/products/search:
+    get:
+      tags: [Products]
+      summary: Search products
+      description: Search products by name or brand.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          description: Search query
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: Maximum number of results
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      products:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Product"
+
+  /api/v1/favorites:
+    get:
+      tags: [Favorites]
+      summary: Get favorite products
+      description: Returns all favorite products for the authenticated user.
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Favorites retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+
+  /api/v1/favorites/{productId}:
+    post:
+      tags: [Favorites]
+      summary: Add product to favorites
+      description: Add a product to the authenticated user's favorites.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Product added to favorites
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Product added to favorites
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+    delete:
+      tags: [Favorites]
+      summary: Remove product from favorites
+      description: Remove a product from the authenticated user's favorites.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Product removed from favorites
+        "404":
+          description: Favorite not found
+
+  /api/v1/favorites/{productId}/toggle:
+    post:
+      tags: [Favorites]
+      summary: Toggle favorite status
+      description: Toggle the favorite status for a product.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Favorite status toggled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      isFavorite:
+                        type: boolean
+
+  /api/v1/favorites/{productId}/status:
+    get:
+      tags: [Favorites]
+      summary: Check if product is favorited
+      description: Check if a specific product is in the authenticated user's favorites.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Favorite status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      isFavorite:
+                        type: boolean
+
+  /api/v1/admin/sync-user/{userId}:
+    post:
+      tags: [Admin]
+      summary: Sync SuperTokens user to database
+      description: |
+        Manually sync a user from SuperTokens to the application database.
+        Useful for users created via the SuperTokens Dashboard who don't have a corresponding database record.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: SuperTokens user ID
+      responses:
+        "200":
+          description: User synced or already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+        "400":
+          description: No email found for user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: User not found in SuperTokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
