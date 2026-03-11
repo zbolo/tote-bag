@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `listViewModeProvider` (Riverpod StateProvider) tracks current view mode
 - Widget tests for `ListItemGridCard` covering all display states
 
+### Fixed
+- Product image from OpenFoodFacts not saved after barcode scan
+  - `ShoppingListService.addItem()` was spreading `productId` (string) directly into the entity create, but MikroORM expects a `product` reference object
+  - Now properly resolves `productId` to a Product entity reference before creating the item
+  - Response now populates the product relation so the image URL is available immediately
+- OpenAPI spec updated to include `product` field in `ShoppingListItem` schema
+
 ### Changed
 - Product images are now shown only in grid/card view, not in list view
   - `ListItemCard` no longer displays product thumbnails for a cleaner compact layout

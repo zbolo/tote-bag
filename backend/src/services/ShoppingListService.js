@@ -189,13 +189,32 @@ export class ShoppingListService {
 
     const maxOrder = Math.max(0, ...list.items.getItems().map(item => item.order));
 
+    // Resolve product reference from productId
+    const { productId, ...itemData } = data;
+    let product = null;
+    if (productId) {
+      product = await this.em.findOne('Product', { id: productId });
+      if (product) {
+        console.log(`[ShoppingListService] Linked product "${product.name}" (${product.id}) to list item`);
+      } else {
+        console.warn(`[ShoppingListService] Product ${productId} not found, creating item without product link`);
+      }
+    }
+
     const item = this.em.create('ShoppingListItem', {
-      ...data,
+      ...itemData,
       list,
+      product,
       order: maxOrder + 1,
     });
 
     await this.em.persistAndFlush(item);
+
+    // Populate the product relation for the response
+    if (product) {
+      await this.em.populate(item, ['product']);
+    }
+
     return item;
   }
 

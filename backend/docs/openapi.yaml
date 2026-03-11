@@ -17,7 +17,7 @@ info:
 
     ## SuperTokens Dashboard
     Available at `/api/auth/dashboard` for user management.
-  version: 0.5.0
+  version: 0.6.0
   contact:
     name: Tote Bag Team
 
@@ -137,6 +137,9 @@ components:
           nullable: true
         barcode:
           type: string
+          nullable: true
+        product:
+          $ref: "#/components/schemas/Product"
           nullable: true
         order:
           type: integer
