@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-03-11
+
+### Added
+- **Woodpecker CI/CD pipeline** for automated Docker image builds on push to main
+  - Builds and pushes backend image to `git.webdeploy.it/zbolo/tote-bag/backend` registry
+  - Tags images with both `latest` and version from `backend/package.json`
+  - Only triggers when backend files are modified (`backend/**/*`)
+  - Uses secrets for Docker registry credentials and environment file
+- **`docker-compose.build.yml`** for CI image building with production target and version tagging
+- **Multi-stage Dockerfile** for backend with `development` and `production` targets
+  - Development stage includes devDependencies and hot-reload via `npm run dev`
+  - Production stage includes only production dependencies and runs `node src/index.js`
+
+### Changed
+- `docker-compose.yml` now uses `target: development` for local dev builds
+- `docker-compose.prod.yml` backend image changed from `tote-bag-backend:latest` to `git.webdeploy.it/zbolo/tote-bag/backend:latest`
+
 ## [0.7.1] - 2026-03-11
 
 ### Changed
@@ -316,7 +333,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/username/tote-bag/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/username/tote-bag/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/username/tote-bag/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/username/tote-bag/compare/v0.5.0...v0.6.0

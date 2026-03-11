@@ -18,7 +18,7 @@ services:
     restart: always
 
   backend:
-    image: tote-bag-backend:latest
+    image: git.webdeploy.it/zbolo/tote-bag/backend:latest
     container_name: tote-bag-backend
     environment:
       NODE_ENV: production

@@ -1,0 +1,28 @@
+when:
+  - event: push
+    branch: main
+
+steps:
+  build_and_upload_backend:
+    image: git.webdeploy.it/webdeploy/alpine
+    environment:
+      DOCKER_USERNAME:
+        from_secret: docker_username
+      DOCKER_PASSWORD:
+        from_secret: docker_password
+      ENV_FILE:
+        from_secret: env_file
+    commands:
+      # Login to git.webdeploy.it
+      - echo "$${DOCKER_PASSWORD}" | docker login --password-stdin --username "$${DOCKER_USERNAME}" git.webdeploy.it
+      # env file
+      - echo "$${ENV_FILE}" | base64 -d > .env
+      - echo "TAG=$(jq -r .version ./backend/package.json)" >> .env
+      - docker-compose -f docker-compose.build.yml build
+      # push backend
+      - docker push git.webdeploy.it/zbolo/tote-bag/backend:latest
+      - docker push git.webdeploy.it/zbolo/tote-bag/backend:$(jq -r .version ./backend/package.json)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    when:
+      - path: "backend/**/*"
