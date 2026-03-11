@@ -26,6 +26,8 @@ class _AddPantryItemDialogState extends ConsumerState<AddPantryItemDialog> {
   final _nameController = TextEditingController();
   final _quantityController = TextEditingController(text: '1');
   final _unitController = TextEditingController();
+  final _contentQuantityController = TextEditingController();
+  final _contentUnitController = TextEditingController();
   final _categoryController = TextEditingController();
   final _notesController = TextEditingController();
   final _priceController = TextEditingController();
@@ -40,6 +42,8 @@ class _AddPantryItemDialogState extends ConsumerState<AddPantryItemDialog> {
     _nameController.dispose();
     _quantityController.dispose();
     _unitController.dispose();
+    _contentQuantityController.dispose();
+    _contentUnitController.dispose();
     _categoryController.dispose();
     _notesController.dispose();
     _priceController.dispose();
@@ -83,6 +87,34 @@ class _AddPantryItemDialogState extends ConsumerState<AddPantryItemDialog> {
                     decoration: const InputDecoration(
                       labelText: 'Unit',
                       hintText: 'kg, L, pcs',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Content quantity + unit row
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _contentQuantityController,
+                    decoration: const InputDecoration(
+                      labelText: 'Content',
+                      hintText: '500',
+                    ),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _contentUnitController,
+                    decoration: const InputDecoration(
+                      labelText: 'Content unit',
+                      hintText: 'g, ml',
                     ),
                   ),
                 ),
@@ -235,6 +267,8 @@ class _AddPantryItemDialogState extends ConsumerState<AddPantryItemDialog> {
 
     final qty = double.tryParse(_quantityController.text) ?? 1;
     final price = double.tryParse(_priceController.text);
+    final contentQty =
+        double.tryParse(_contentQuantityController.text);
 
     Log.info('AddPantryItemDialog', 'Adding item "$name" to pantry');
 
@@ -258,6 +292,11 @@ class _AddPantryItemDialogState extends ConsumerState<AddPantryItemDialog> {
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
+        contentQuantity: contentQty,
+        contentMaxQuantity: contentQty,
+        contentUnit: _contentUnitController.text.trim().isEmpty
+            ? null
+            : _contentUnitController.text.trim(),
       );
 
       if (mounted) {

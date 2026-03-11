@@ -85,6 +85,18 @@ export const PantryItemSchema = new EntitySchema({
       type: 'double',
       nullable: true,
     },
+    contentQuantity: {
+      type: 'double',
+      nullable: true,
+    },
+    contentMaxQuantity: {
+      type: 'double',
+      nullable: true,
+    },
+    contentUnit: {
+      type: 'string',
+      nullable: true,
+    },
     lowStockThreshold: {
       type: 'double',
       default: 0.25,

@@ -31,14 +31,16 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
   @override
   void initState() {
     super.initState();
-    _sliderValue = widget.item.quantity;
+    _sliderValue = widget.item.sliderValue;
   }
 
   @override
   void didUpdateWidget(PantryItemCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.item.quantity != widget.item.quantity) {
-      _sliderValue = widget.item.quantity;
+    final newVal = widget.item.sliderValue;
+    final oldVal = oldWidget.item.sliderValue;
+    if (oldVal != newVal) {
+      _sliderValue = newVal;
     }
   }
 
@@ -99,6 +101,23 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
                           color: AppTheme.textSecondaryColor,
                         ),
                   ),
+                  if (item.displayContentQuantity != null) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      '·',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppTheme.textTertiaryColor,
+                          ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      item.displayContentQuantity!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: _quantityColor(pct),
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
                   if (item.category != null) ...[
                     const SizedBox(width: 8),
                     Container(
@@ -154,10 +173,10 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
                             _quantityColor(pct).withValues(alpha: 0.1),
                       ),
                       child: Slider(
-                        value: _sliderValue.clamp(0, item.maxQuantity),
+                        value: _sliderValue.clamp(0, item.sliderMax),
                         min: 0,
-                        max: item.maxQuantity,
-                        divisions: _sliderDivisions(item.maxQuantity),
+                        max: item.sliderMax,
+                        divisions: _sliderDivisions(item.sliderMax),
                         onChanged: (value) {
                           setState(() => _sliderValue = value);
                         },
@@ -250,15 +269,25 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
   }
 
   Future<void> _updateQuantity(double value) async {
+    final item = widget.item;
+    final isContent = item.hasContentTracking;
     Log.debug('PantryItemCard',
-        'Updating quantity of "${widget.item.name}" → $value');
+        'Updating ${isContent ? "content" : ""} quantity of "${item.name}" → $value');
     try {
       final service = ref.read(pantryServiceProvider);
-      await service.updateItem(
-        pantryId: widget.pantryId,
-        itemId: widget.item.id,
-        quantity: value,
-      );
+      if (isContent) {
+        await service.updateItem(
+          pantryId: widget.pantryId,
+          itemId: item.id,
+          contentQuantity: value,
+        );
+      } else {
+        await service.updateItem(
+          pantryId: widget.pantryId,
+          itemId: item.id,
+          quantity: value,
+        );
+      }
       widget.onRefresh();
     } catch (e) {
       Log.error('PantryItemCard', 'Quantity update failed', e);

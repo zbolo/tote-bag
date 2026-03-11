@@ -89,6 +89,9 @@ export const addPantryItemSchema = z.object({
   productId: z.string().uuid().optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
   lowStockThreshold: z.number().min(0).max(1).optional().nullable(),
+  contentQuantity: z.number().nonnegative().optional().nullable(),
+  contentMaxQuantity: z.number().positive().optional().nullable(),
+  contentUnit: z.string().max(50).optional().nullable(),
 });
 
 export const updatePantryItemSchema = z.object({
@@ -103,6 +106,9 @@ export const updatePantryItemSchema = z.object({
   price: z.number().nonnegative().optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
   lowStockThreshold: z.number().min(0).max(1).optional().nullable(),
+  contentQuantity: z.number().nonnegative().optional().nullable(),
+  contentMaxQuantity: z.number().positive().optional().nullable(),
+  contentUnit: z.string().max(50).optional().nullable(),
   order: z.number().int().nonnegative().optional(),
 });
 

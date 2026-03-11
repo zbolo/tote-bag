@@ -15,6 +15,9 @@ class PantryItem {
   final DateTime? expirationDate;
   final DateTime? purchaseDate;
   final double? price;
+  final double? contentQuantity;
+  final double? contentMaxQuantity;
+  final String? contentUnit;
   final double lowStockThreshold;
   final int order;
   final DateTime createdAt;
@@ -34,6 +37,9 @@ class PantryItem {
     this.expirationDate,
     this.purchaseDate,
     this.price,
+    this.contentQuantity,
+    this.contentMaxQuantity,
+    this.contentUnit,
     this.lowStockThreshold = 0.25,
     this.order = 0,
     required this.createdAt,
@@ -64,6 +70,9 @@ class PantryItem {
           ? DateTime.parse(json['purchaseDate'] as String)
           : null,
       price: (json['price'] as num?)?.toDouble(),
+      contentQuantity: (json['contentQuantity'] as num?)?.toDouble(),
+      contentMaxQuantity: (json['contentMaxQuantity'] as num?)?.toDouble(),
+      contentUnit: json['contentUnit'] as String?,
       lowStockThreshold:
           (json['lowStockThreshold'] as num?)?.toDouble() ?? 0.25,
       order: json['order'] as int? ?? 0,
@@ -87,6 +96,9 @@ class PantryItem {
       'expirationDate': expirationDate?.toIso8601String(),
       'purchaseDate': purchaseDate?.toIso8601String(),
       'price': price,
+      'contentQuantity': contentQuantity,
+      'contentMaxQuantity': contentMaxQuantity,
+      'contentUnit': contentUnit,
       'lowStockThreshold': lowStockThreshold,
       'order': order,
       'createdAt': createdAt.toIso8601String(),
@@ -108,6 +120,9 @@ class PantryItem {
     DateTime? expirationDate,
     DateTime? purchaseDate,
     double? price,
+    double? contentQuantity,
+    double? contentMaxQuantity,
+    String? contentUnit,
     double? lowStockThreshold,
     int? order,
     DateTime? createdAt,
@@ -127,6 +142,9 @@ class PantryItem {
       expirationDate: expirationDate ?? this.expirationDate,
       purchaseDate: purchaseDate ?? this.purchaseDate,
       price: price ?? this.price,
+      contentQuantity: contentQuantity ?? this.contentQuantity,
+      contentMaxQuantity: contentMaxQuantity ?? this.contentMaxQuantity,
+      contentUnit: contentUnit ?? this.contentUnit,
       lowStockThreshold: lowStockThreshold ?? this.lowStockThreshold,
       order: order ?? this.order,
       createdAt: createdAt ?? this.createdAt,
@@ -134,12 +152,35 @@ class PantryItem {
     );
   }
 
-  /// Quantity as a percentage (0.0 - 1.0)
-  double get quantityPercentage =>
-      maxQuantity > 0 ? (quantity / maxQuantity).clamp(0.0, 1.0) : 0.0;
+  /// Whether content-level tracking is enabled
+  bool get hasContentTracking =>
+      contentMaxQuantity != null && contentMaxQuantity! > 0;
+
+  /// Quantity as a percentage (0.0 - 1.0).
+  /// Uses content quantities when available, falls back to piece quantities.
+  double get quantityPercentage {
+    if (hasContentTracking) {
+      return ((contentQuantity ?? 0) / contentMaxQuantity!).clamp(0.0, 1.0);
+    }
+    return maxQuantity > 0 ? (quantity / maxQuantity).clamp(0.0, 1.0) : 0.0;
+  }
+
+  /// The current slider value (content quantity or piece quantity)
+  double get sliderValue =>
+      hasContentTracking ? (contentQuantity ?? 0) : quantity;
+
+  /// The max slider value (content max or piece max)
+  double get sliderMax =>
+      hasContentTracking ? contentMaxQuantity! : maxQuantity;
 
   /// Whether the item is running low
-  bool get isLowStock => quantity <= lowStockThreshold * maxQuantity;
+  bool get isLowStock {
+    if (hasContentTracking) {
+      return (contentQuantity ?? 0) <=
+          lowStockThreshold * contentMaxQuantity!;
+    }
+    return quantity <= lowStockThreshold * maxQuantity;
+  }
 
   /// Whether the item has expired
   bool get isExpired =>
@@ -159,12 +200,27 @@ class PantryItem {
     return expirationDate!.difference(DateTime.now()).inDays;
   }
 
-  /// Display quantity with unit
+  /// Display piece quantity with unit (e.g. "2 pcs")
   String get displayQuantity {
-    final qty = quantity % 1 == 0 ? quantity.toInt().toString() : quantity.toStringAsFixed(1);
+    final qty = quantity % 1 == 0
+        ? quantity.toInt().toString()
+        : quantity.toStringAsFixed(1);
     if (unit != null) {
       return '$qty $unit';
     }
     return qty;
+  }
+
+  /// Display content quantity with unit (e.g. "350 g")
+  String? get displayContentQuantity {
+    if (!hasContentTracking) return null;
+    final qty = contentQuantity ?? 0;
+    final fmtQty =
+        qty % 1 == 0 ? qty.toInt().toString() : qty.toStringAsFixed(1);
+    final fmtMax = contentMaxQuantity! % 1 == 0
+        ? contentMaxQuantity!.toInt().toString()
+        : contentMaxQuantity!.toStringAsFixed(1);
+    final u = contentUnit ?? '';
+    return '$fmtQty / $fmtMax $u'.trim();
   }
 }

@@ -178,6 +178,9 @@ class PantryService {
     String? productId,
     String? notes,
     double? lowStockThreshold,
+    double? contentQuantity,
+    double? contentMaxQuantity,
+    String? contentUnit,
   }) async {
     Log.info(_tag, 'Adding item "$name" to pantry $pantryId');
     try {
@@ -197,6 +200,9 @@ class PantryService {
           'productId': productId,
           'notes': notes,
           'lowStockThreshold': lowStockThreshold,
+          'contentQuantity': contentQuantity,
+          'contentMaxQuantity': contentMaxQuantity,
+          'contentUnit': contentUnit,
         },
       );
 
@@ -232,6 +238,9 @@ class PantryService {
     double? price,
     String? notes,
     double? lowStockThreshold,
+    double? contentQuantity,
+    double? contentMaxQuantity,
+    String? contentUnit,
     int? order,
   }) async {
     Log.debug(_tag, 'Updating item $itemId in pantry $pantryId');
@@ -252,6 +261,11 @@ class PantryService {
       if (lowStockThreshold != null) {
         data['lowStockThreshold'] = lowStockThreshold;
       }
+      if (contentQuantity != null) data['contentQuantity'] = contentQuantity;
+      if (contentMaxQuantity != null) {
+        data['contentMaxQuantity'] = contentMaxQuantity;
+      }
+      if (contentUnit != null) data['contentUnit'] = contentUnit;
       if (order != null) data['order'] = order;
 
       final response = await _apiClient.dio.patch(
