@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json must be tracked for Docker builds
 
 # Build outputs
 dist/

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-03-11
+
+### Fixed
+- Fixed Docker build by tracking `package-lock.json` in git (required by `npm ci`)
+- Updated Dockerfile to use `--omit=dev` instead of deprecated `--only=production`
+- Removed `package-lock.json` from `.gitignore`
+
 ## [0.1.6] - 2025-11-07
 
 ### Fixed
