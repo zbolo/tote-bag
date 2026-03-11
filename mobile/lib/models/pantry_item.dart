@@ -156,28 +156,34 @@ class PantryItem {
   bool get hasContentTracking =>
       contentMaxQuantity != null && contentMaxQuantity! > 0;
 
+  /// Content per unit (e.g. 500g per box)
+  double get contentPerUnit => contentMaxQuantity ?? 0;
+
+  /// Total content capacity across all pieces (e.g. 2 boxes × 500g = 1000g)
+  double get totalContentMax =>
+      hasContentTracking ? quantity * contentPerUnit : 0;
+
   /// Quantity as a percentage (0.0 - 1.0).
-  /// Uses content quantities when available, falls back to piece quantities.
+  /// Uses content quantities when available (based on total across all pieces).
   double get quantityPercentage {
-    if (hasContentTracking) {
-      return ((contentQuantity ?? 0) / contentMaxQuantity!).clamp(0.0, 1.0);
+    if (hasContentTracking && totalContentMax > 0) {
+      return ((contentQuantity ?? 0) / totalContentMax).clamp(0.0, 1.0);
     }
     return maxQuantity > 0 ? (quantity / maxQuantity).clamp(0.0, 1.0) : 0.0;
   }
 
-  /// The current slider value (content quantity or piece quantity)
+  /// The current slider value (content quantity)
   double get sliderValue =>
       hasContentTracking ? (contentQuantity ?? 0) : quantity;
 
-  /// The max slider value (content max or piece max)
+  /// The max slider value (total content across all pieces)
   double get sliderMax =>
-      hasContentTracking ? contentMaxQuantity! : maxQuantity;
+      hasContentTracking ? totalContentMax : maxQuantity;
 
   /// Whether the item is running low
   bool get isLowStock {
     if (hasContentTracking) {
-      return (contentQuantity ?? 0) <=
-          lowStockThreshold * contentMaxQuantity!;
+      return (contentQuantity ?? 0) <= lowStockThreshold * totalContentMax;
     }
     return quantity <= lowStockThreshold * maxQuantity;
   }
@@ -211,16 +217,27 @@ class PantryItem {
     return qty;
   }
 
-  /// Display content quantity with unit (e.g. "350 g")
+  /// Display content quantity with unit (e.g. "300 / 1000 g")
   String? get displayContentQuantity {
     if (!hasContentTracking) return null;
     final qty = contentQuantity ?? 0;
+    final max = totalContentMax;
     final fmtQty =
         qty % 1 == 0 ? qty.toInt().toString() : qty.toStringAsFixed(1);
-    final fmtMax = contentMaxQuantity! % 1 == 0
-        ? contentMaxQuantity!.toInt().toString()
-        : contentMaxQuantity!.toStringAsFixed(1);
+    final fmtMax =
+        max % 1 == 0 ? max.toInt().toString() : max.toStringAsFixed(1);
     final u = contentUnit ?? '';
     return '$fmtQty / $fmtMax $u'.trim();
+  }
+
+  /// Display content per unit (e.g. "500 g")
+  String? get displayContentPerUnit {
+    if (!hasContentTracking) return null;
+    final perUnit = contentPerUnit;
+    final fmt = perUnit % 1 == 0
+        ? perUnit.toInt().toString()
+        : perUnit.toStringAsFixed(1);
+    final u = contentUnit ?? '';
+    return '$fmt $u'.trim();
   }
 }

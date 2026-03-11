@@ -8,6 +8,7 @@ import '../../services/logger.dart';
 import '../../widgets/pantry_item_card.dart';
 import '../../widgets/error_snackbar.dart';
 import 'add_pantry_item_screen.dart';
+import 'edit_pantry_item_screen.dart';
 
 class PantryDetailScreen extends ConsumerWidget {
   final String pantryId;
@@ -398,6 +399,20 @@ class PantryDetailScreen extends ConsumerWidget {
                 item: item,
                 pantryId: pantryId,
                 onRefresh: () => ref.invalidate(pantryProvider(pantryId)),
+                onEdit: () async {
+                  final edited = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (_) => EditPantryItemScreen(
+                        pantryId: pantryId,
+                        item: item,
+                        storageLocations: allLocations,
+                      ),
+                    ),
+                  );
+                  if (edited == true) {
+                    ref.invalidate(pantryProvider(pantryId));
+                  }
+                },
               ),
             )),
       ],

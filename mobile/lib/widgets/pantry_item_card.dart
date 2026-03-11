@@ -243,55 +243,59 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
                       ],
                     ),
 
-                    const SizedBox(height: 8),
-
-                    // Quantity slider
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SliderTheme(
-                            data: SliderThemeData(
-                              trackHeight: 6,
-                              thumbShape:
-                                  const RoundSliderThumbShape(
-                                      enabledThumbRadius: 8),
-                              activeTrackColor: _quantityColor(pct),
-                              inactiveTrackColor:
-                                  _quantityColor(pct).withValues(alpha: 0.2),
-                              thumbColor: _quantityColor(pct),
-                              overlayColor:
-                                  _quantityColor(pct).withValues(alpha: 0.1),
-                            ),
-                            child: Slider(
-                              value:
-                                  _sliderValue.clamp(0, item.sliderMax),
-                              min: 0,
-                              max: item.sliderMax,
-                              divisions: _sliderDivisions(item.sliderMax),
-                              onChanged: (value) {
-                                setState(() => _sliderValue = value);
-                              },
-                              onChangeEnd: (value) =>
-                                  _updateQuantity(value),
+                    // Content quantity slider (only when content tracking is enabled)
+                    if (item.hasContentTracking) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SliderTheme(
+                              data: SliderThemeData(
+                                trackHeight: 6,
+                                thumbShape:
+                                    const RoundSliderThumbShape(
+                                        enabledThumbRadius: 8),
+                                activeTrackColor: _quantityColor(pct),
+                                inactiveTrackColor:
+                                    _quantityColor(pct)
+                                        .withValues(alpha: 0.2),
+                                thumbColor: _quantityColor(pct),
+                                overlayColor:
+                                    _quantityColor(pct)
+                                        .withValues(alpha: 0.1),
+                              ),
+                              child: Slider(
+                                value: _sliderValue.clamp(
+                                    0, item.sliderMax),
+                                min: 0,
+                                max: item.sliderMax,
+                                divisions:
+                                    _sliderDivisions(item.sliderMax),
+                                onChanged: (value) {
+                                  setState(() => _sliderValue = value);
+                                },
+                                onChangeEnd: (value) =>
+                                    _updateContentQuantity(value),
+                              ),
                             ),
                           ),
-                        ),
-                        SizedBox(
-                          width: 48,
-                          child: Text(
-                            '${(pct * 100).toInt()}%',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: _quantityColor(pct),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                            textAlign: TextAlign.right,
+                          SizedBox(
+                            width: 48,
+                            child: Text(
+                              '${(pct * 100).toInt()}%',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: _quantityColor(pct),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                              textAlign: TextAlign.right,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
 
                     if (item.notes != null) ...[
                       const SizedBox(height: 4),
@@ -384,11 +388,24 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
         'Updating piece quantity for "${item.name}" → $newQuantity');
     try {
       final service = ref.read(pantryServiceProvider);
+
+      // When content tracking is on and quantity decreases,
+      // clamp contentQuantity to the new total max.
+      double? clampedContent;
+      if (item.hasContentTracking) {
+        final newTotalMax = newQuantity * item.contentPerUnit;
+        final currentContent = item.contentQuantity ?? 0;
+        if (currentContent > newTotalMax) {
+          clampedContent = newTotalMax;
+        }
+      }
+
       await service.updateItem(
         pantryId: widget.pantryId,
         itemId: item.id,
         quantity: newQuantity.toDouble(),
         maxQuantity: newQuantity.toDouble(),
+        contentQuantity: clampedContent,
       );
       widget.onRefresh();
     } catch (e) {
@@ -399,29 +416,20 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
     }
   }
 
-  Future<void> _updateQuantity(double value) async {
+  Future<void> _updateContentQuantity(double value) async {
     final item = widget.item;
-    final isContent = item.hasContentTracking;
     Log.debug('PantryItemCard',
-        'Updating ${isContent ? "content" : ""} quantity of "${item.name}" → $value');
+        'Updating content quantity of "${item.name}" → $value');
     try {
       final service = ref.read(pantryServiceProvider);
-      if (isContent) {
-        await service.updateItem(
-          pantryId: widget.pantryId,
-          itemId: item.id,
-          contentQuantity: value,
-        );
-      } else {
-        await service.updateItem(
-          pantryId: widget.pantryId,
-          itemId: item.id,
-          quantity: value,
-        );
-      }
+      await service.updateItem(
+        pantryId: widget.pantryId,
+        itemId: item.id,
+        contentQuantity: value,
+      );
       widget.onRefresh();
     } catch (e) {
-      Log.error('PantryItemCard', 'Quantity update failed', e);
+      Log.error('PantryItemCard', 'Content quantity update failed', e);
       if (mounted) {
         showErrorSnackBar(context, e);
       }
