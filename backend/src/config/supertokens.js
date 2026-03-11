@@ -3,10 +3,10 @@ import Session from 'supertokens-node/recipe/session/index.js';
 import EmailPassword from 'supertokens-node/recipe/emailpassword/index.js';
 import Dashboard from 'supertokens-node/recipe/dashboard/index.js';
 import UserMetadata from 'supertokens-node/recipe/usermetadata/index.js';
+import { getEmailPasswordOverride } from '../hooks/supertokens.js';
 
 /**
  * Initialize Supertokens authentication
- * Sign-up is disabled - only admins can create users via SuperTokens Dashboard
  * @returns {void}
  */
 export function initSupertokens() {
@@ -31,16 +31,14 @@ export function initSupertokens() {
       }),
       EmailPassword.init({
         signUpFeature: {
-          disableDefaultImplementation: true,
+          formFields: [
+            {
+              id: 'displayName',
+              optional: false,
+            },
+          ],
         },
-        override: {
-          apis: (originalImplementation) => {
-            return {
-              ...originalImplementation,
-              signUpPOST: undefined,
-            };
-          },
-        },
+        override: getEmailPasswordOverride(),
       }),
       Session.init({
         getTokenTransferMethod: () => 'header',
@@ -49,5 +47,5 @@ export function initSupertokens() {
     ],
   });
 
-  console.log('[SuperTokens] Initialization complete (signup disabled, header-based sessions)');
+  console.log('[SuperTokens] Initialization complete (header-based sessions)');
 }
