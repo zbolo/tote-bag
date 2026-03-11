@@ -89,8 +89,9 @@ class ApiClient {
       );
 
       if (response.statusCode == 200) {
-        final newAccessToken = response.data['accessToken'] as String?;
-        final newRefreshToken = response.data['refreshToken'] as String?;
+        // SuperTokens returns tokens in response headers, not body
+        final newAccessToken = response.headers.value('st-access-token');
+        final newRefreshToken = response.headers.value('st-refresh-token');
 
         if (newAccessToken != null) {
           await setAccessToken(newAccessToken);
@@ -99,7 +100,7 @@ class ApiClient {
           await setRefreshToken(newRefreshToken);
         }
 
-        return true;
+        return newAccessToken != null;
       }
     } catch (e) {
       await clearTokens();
