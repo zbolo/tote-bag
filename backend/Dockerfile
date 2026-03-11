@@ -1,5 +1,5 @@
-# Use Node.js v24 - Plain JavaScript, no TypeScript
-FROM node:24-alpine
+# Use Node.js v25 - Plain JavaScript, no TypeScript
+FROM node:25-alpine
 
 # Install wget for Docker health checks
 RUN apk add --no-cache wget
@@ -14,5 +14,5 @@ COPY docs ./docs
 
 EXPOSE 3000
 
-# Run JavaScript directly with Node.js v24
+# Run JavaScript directly with Node.js v25
 CMD ["node", "src/index.js"]

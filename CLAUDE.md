@@ -209,7 +209,7 @@ npm run docker:down # Stop all services
 - mobile_scanner 5.2.3 - Barcode scanning
 
 ## Important Notes
-- Node.js version: **24.x** (latest with ES2024 support).
+- Node.js version: **25.x** (latest with ES2025 support).
 - The project was recently refactored from TypeScript to **Plain JavaScript**.
 - Jest configuration MUST match JavaScript files (.js not .ts).
 - Project structure was moved from `packages/` to root-level `backend/` and `mobile/`.

@@ -60,7 +60,7 @@ A beautiful, modern grocery shopping assistant app with shared lists and barcode
 
 #### Runtime & Language
 
-- **Node.js**: 24.x - Latest LTS with modern JavaScript features
+- **Node.js**: 25.x - Latest with modern JavaScript features
 - **Plain JavaScript (ES Modules)** - No TypeScript, no build step
 - **JSDoc** - Type hints via JSDoc comments for IDE support
 
@@ -261,7 +261,7 @@ The Flutter app follows **Clean Architecture** principles with Riverpod:
 
 ### Prerequisites
 
-- **Node.js** >= 24.0.0 (required for native TypeScript support)
+- **Node.js** >= 25.0.0
 - **Flutter SDK** >= 3.24.0
 - **Dart SDK** >= 3.5.0
 - **Docker** >= 24.0.0
