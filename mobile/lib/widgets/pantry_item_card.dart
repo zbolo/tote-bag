@@ -46,10 +46,31 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
     }
   }
 
+  /// Compute percentage from the live slider value instead of the model.
+  double get _livePct {
+    final item = widget.item;
+    final max = item.sliderMax;
+    return max > 0 ? (_sliderValue / max).clamp(0.0, 1.0) : 0.0;
+  }
+
+  /// Compute content quantity display from the live slider value.
+  String? get _liveContentDisplay {
+    final item = widget.item;
+    if (!item.hasContentTracking) return null;
+    final qty = _sliderValue;
+    final fmtQty =
+        qty % 1 == 0 ? qty.toInt().toString() : qty.toStringAsFixed(1);
+    final fmtMax = item.contentMaxQuantity! % 1 == 0
+        ? item.contentMaxQuantity!.toInt().toString()
+        : item.contentMaxQuantity!.toStringAsFixed(1);
+    final u = item.contentUnit ?? '';
+    return '$fmtQty / $fmtMax $u'.trim();
+  }
+
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
-    final pct = item.quantityPercentage;
+    final pct = _livePct;
 
     return Card(
       child: InkWell(
@@ -154,7 +175,7 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
                             ),
                           ),
                         ),
-                        if (item.displayContentQuantity != null) ...[
+                        if (_liveContentDisplay != null) ...[
                           const SizedBox(width: 6),
                           Text(
                             '·',
@@ -167,7 +188,7 @@ class _PantryItemCardState extends ConsumerState<PantryItemCard> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            item.displayContentQuantity!,
+                            _liveContentDisplay!,
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall
