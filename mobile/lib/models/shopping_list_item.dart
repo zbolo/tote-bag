@@ -32,6 +32,12 @@ class ShoppingListItem {
   });
 
   factory ShoppingListItem.fromJson(Map<String, dynamic> json) {
+    // Product can be a full object (Map) or a bare UUID string (unpopulated
+    // MikroORM reference). Only parse when we receive a full object.
+    final rawProduct = json['product'];
+    final Product? product =
+        rawProduct is Map<String, dynamic> ? Product.fromJson(rawProduct) : null;
+
     return ShoppingListItem(
       id: json['id'] as String,
       name: json['name'] as String,
@@ -40,9 +46,7 @@ class ShoppingListItem {
       notes: json['notes'] as String?,
       isChecked: json['isChecked'] as bool? ?? false,
       category: json['category'] as String?,
-      product: json['product'] != null
-          ? Product.fromJson(json['product'] as Map<String, dynamic>)
-          : null,
+      product: product,
       barcode: json['barcode'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),

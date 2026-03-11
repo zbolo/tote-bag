@@ -27,17 +27,34 @@ class ShoppingList {
   });
 
   factory ShoppingList.fromJson(Map<String, dynamic> json) {
+    // Owner can be a full object or a bare UUID string (unpopulated reference).
+    final rawOwner = json['owner'];
+    final owner = rawOwner is Map<String, dynamic>
+        ? User.fromJson(rawOwner)
+        : User(
+            id: rawOwner?.toString() ?? '',
+            email: '',
+            displayName: 'Unknown',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+
+    // Items may contain unpopulated references — only parse Maps.
+    final rawItems = json['items'] as List<dynamic>?;
+    final items = rawItems
+            ?.whereType<Map<String, dynamic>>()
+            .map((item) => ShoppingListItem.fromJson(item))
+            .toList() ??
+        [];
+
     return ShoppingList(
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String?,
       color: json['color'] as String?,
       icon: json['icon'] as String?,
-      owner: User.fromJson(json['owner'] as Map<String, dynamic>),
-      items: (json['items'] as List<dynamic>?)
-              ?.map((item) => ShoppingListItem.fromJson(item as Map<String, dynamic>))
-              .toList() ??
-          [],
+      owner: owner,
+      items: items,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       isArchived: json['isArchived'] as bool? ?? false,
