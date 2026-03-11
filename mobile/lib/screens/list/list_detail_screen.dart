@@ -119,7 +119,7 @@ class ListDetailScreen extends ConsumerWidget {
                         ),
                       ),
                       SizedBox(
-                        height: 180,
+                        height: 200,
                         child: favoritesAsync.when(
                           data: (favorites) {
                             if (favorites.isEmpty) {
@@ -153,8 +153,8 @@ class ListDetailScreen extends ConsumerWidget {
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 1,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: 1.2,
+                                mainAxisSpacing: 10,
+                                childAspectRatio: 0.75,
                               ),
                               itemCount: favorites.length,
                               itemBuilder: (context, index) {

@@ -19,110 +19,163 @@ class ProductGridItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: isInList ? 1 : 2,
-      color: isInList
-          ? AppTheme.dividerColor.withValues(alpha: 0.3)
-          : AppTheme.surfaceColor,
+      color: isInList ? AppTheme.dividerColor : AppTheme.surfaceColor,
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Product image or placeholder
-              if (product.imageUrl != null)
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Product image or placeholder
                 Expanded(
                   flex: 3,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: CachedNetworkImage(
-                      imageUrl: product.imageUrl!,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      placeholder: (_, __) => _buildPlaceholder(
-                        child: const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                      errorWidget: (_, __, ___) => _buildPlaceholder(),
-                    ),
-                  ),
-                )
-              else
-                Expanded(
-                  flex: 3,
-                  child: _buildPlaceholder(),
+                  child: _buildImage(),
                 ),
 
-              const SizedBox(height: 8),
-
-              // Product name
-              Expanded(
-                flex: 2,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      product.name,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            color: isInList
-                                ? AppTheme.textSecondaryColor
-                                : AppTheme.textPrimaryColor,
-                            decoration:
-                                isInList ? TextDecoration.lineThrough : null,
+                // Product info
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Name
+                        Flexible(
+                          child: Text(
+                            product.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: isInList
+                                      ? AppTheme.textSecondaryColor
+                                      : AppTheme.textPrimaryColor,
+                                  decoration: isInList
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                    if (product.brand != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        product.brand!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.textTertiaryColor,
+                        ),
+                        if (product.brand != null) ...[
+                          const SizedBox(height: 1),
+                          Text(
+                            product.brand!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: AppTheme.textTertiaryColor,
+                                  fontSize: 10,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        if (product.category != null) ...[
+                          const SizedBox(height: 2),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: Text(
+                                product.category!,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: AppTheme.primaryColor,
+                                      fontSize: 9,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            // "In list" overlay
+            if (isInList)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  child: const Center(
+                    child: Icon(
+                      Icons.check_circle,
+                      size: 36,
+                      color: AppTheme.successColor,
+                    ),
+                  ),
                 ),
               ),
 
-              // Favorite star indicator
-              if (product.isFavorite)
-                const Padding(
-                  padding: EdgeInsets.only(top: 4),
-                  child: Icon(
+            // Favorite star
+            if (product.isFavorite)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
                     Icons.star,
                     size: 16,
                     color: Colors.amber,
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
   }
 
+  Widget _buildImage() {
+    if (product.imageUrl != null) {
+      return CachedNetworkImage(
+        imageUrl: product.imageUrl!,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => _buildPlaceholder(
+          child: const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+        errorWidget: (_, __, ___) => _buildPlaceholder(),
+      );
+    }
+    return _buildPlaceholder();
+  }
+
   Widget _buildPlaceholder({Widget? child}) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.dividerColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      color: AppTheme.dividerColor,
       child: Center(
         child: child ??
             const Icon(
               Icons.shopping_basket,
-              size: 32,
+              size: 28,
               color: AppTheme.textSecondaryColor,
             ),
       ),
