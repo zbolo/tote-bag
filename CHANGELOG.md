@@ -23,6 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `ShoppingListService.addItem()` was spreading `productId` (string) directly into the entity create, but MikroORM expects a `product` reference object
   - Now properly resolves `productId` to a Product entity reference before creating the item
   - Response now populates the product relation so the image URL is available immediately
+- "Something went wrong" error when toggling check on items with product images in card view
+  - `ShoppingListService.updateItem()` was not populating the `product` relation
+  - MikroORM returned the unpopulated product as a raw UUID string instead of a full object
+  - Mobile tried to cast the UUID string to `Map<String, dynamic>` → type error
+  - Items without products (null) were unaffected, causing the asymmetric behavior
+  - Both items appeared checked because the API call succeeded server-side but the response parsing failed, preventing UI refresh until the next successful action
+- Added `ValueKey` to grid card widgets to prevent stale widget reuse during list rebuilds
 - OpenAPI spec updated to include `product` field in `ShoppingListItem` schema
 
 ### Changed

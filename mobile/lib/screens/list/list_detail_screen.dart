@@ -384,6 +384,7 @@ class ListDetailScreen extends ConsumerWidget {
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) => ListItemGridCard(
+                  key: ValueKey(uncheckedItems[index].id),
                   item: uncheckedItems[index],
                   listId: listId,
                   onRefresh: () {
@@ -418,6 +419,7 @@ class ListDetailScreen extends ConsumerWidget {
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) => ListItemGridCard(
+                  key: ValueKey(checkedItems[index].id),
                   item: checkedItems[index],
                   listId: listId,
                   onRefresh: () {

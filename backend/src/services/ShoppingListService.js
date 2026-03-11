@@ -229,7 +229,7 @@ export class ShoppingListService {
     const item = await this.em.findOne(
       'ShoppingListItem',
       { id: itemId },
-      { populate: ['list.owner', 'list.shares.user'] }
+      { populate: ['list.owner', 'list.shares.user', 'product'] }
     );
 
     if (!item) {
