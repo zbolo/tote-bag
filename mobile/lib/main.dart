@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'config/app_theme.dart';
 import 'config/router.dart';
 import 'services/logger.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: '.env');
+  Log.info('App', 'Loaded .env — API_BASE_URL=${dotenv.env['API_BASE_URL']}');
+
   Log.info('App', 'Tote Bag starting');
 
   runApp(

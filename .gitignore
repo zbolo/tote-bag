@@ -11,6 +11,8 @@ build/
 .env
 .env.local
 .env.*.local
+# Mobile .env is bundled as a Flutter asset (contains only API URL, no secrets)
+!mobile/.env
 
 # IDE
 .vscode/

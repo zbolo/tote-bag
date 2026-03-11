@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OpenAPI spec updated with new product creation and image upload endpoints
 
 ### Changed
+- Replaced compile-time `String.fromEnvironment` API URL config with runtime `flutter_dotenv`
+  - `ApiConfig.baseUrl` now reads from `mobile/.env` file (`API_BASE_URL`)
+  - Default URL set to `http://10.0.2.2:3000` (Android emulator pointing to host machine)
+  - Added `mobile/.env.example` with documentation for different environments
 - Product widgets (`ProductGridItem`, `ListItemCard`) now use `CachedNetworkImage` instead of `Image.network` for better caching and loading states
 - Scanner's product found dialog displays larger (140px) image with rounded corners
 - Scanner's manual entry dialog redesigned with image upload area, camera/gallery picker, and remove button
