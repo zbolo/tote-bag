@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/providers.dart';
 import '../screens/auth/sign_in_screen.dart';
 import '../screens/auth/sign_up_screen.dart';
-import '../screens/home/home_screen.dart';
+import '../screens/home/main_shell_screen.dart';
 import '../screens/list/list_detail_screen.dart';
+import '../screens/pantry/pantry_detail_screen.dart';
 import '../screens/scanner/barcode_scanner_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -43,13 +44,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/',
-        builder: (context, state) => const HomeScreen(),
+        builder: (context, state) => const MainShellScreen(),
       ),
       GoRoute(
         path: '/list/:id',
         builder: (context, state) {
           final listId = state.pathParameters['id']!;
           return ListDetailScreen(listId: listId);
+        },
+      ),
+      GoRoute(
+        path: '/pantry/:id',
+        builder: (context, state) {
+          final pantryId = state.pathParameters['id']!;
+          return PantryDetailScreen(pantryId: pantryId);
         },
       ),
       GoRoute(

@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-03-11
+
+### Added
+- **Pantry feature** — track what you have at home, complementary to shopping lists
+  - Pantry CRUD with sharing support (read/write/admin permissions, like shopping lists)
+  - Pantry items with: quantity, max quantity, unit, category, expiration date, purchase date, price, barcode, product reference, notes
+  - **Quantity slider** for gradual consumption tracking — drag to reduce remaining quantity
+  - Quantity progress bar color-coded: green (>50%), amber (25-50%), red (<25%)
+  - **Custom storage locations** per pantry (default: Fridge, Freezer, Cupboard, Cellar, Other)
+  - Add, edit, and remove storage locations via bottom sheet manager
+  - Items grouped by storage location with collapsible sections
+  - **Expiration date tracking** with color-coded chips: green (>7d), amber (3-7d), red (<3d), "Expired" badge
+  - Expiration warning banner at top of pantry detail screen
+  - **Low stock detection** — items flagged when quantity drops below threshold (default 25%)
+  - Low stock badge on pantry cards and item cards
+  - **Search and filter** — search items by name, filter by storage location via chips
+  - Smart endpoints: GET expiring items, GET low-stock items, GET shopping list suggestions
+  - **Move from shopping list** — bulk move checked items from shopping list to pantry with optional auto-removal
+  - Backend: `Pantry`, `PantryItem`, `PantryShare`, `StorageLocation` MikroORM entities
+  - Backend: `PantryService` with full CRUD, sharing, and smart query methods
+  - Backend: REST API routes at `/api/v1/pantries/*` with Zod validation
+  - Mobile: `Pantry`, `PantryItem`, `StorageLocation` Dart models with computed properties
+  - Mobile: `PantryService` with full API client methods
+  - Mobile: Riverpod providers for pantries, pantry detail, search, filter, view mode
+  - Mobile: `PantryListScreen`, `PantryDetailScreen`, `AddPantryItemDialog`, `CreatePantryDialog`
+  - Mobile: `PantryCard`, `PantryItemCard` widgets
+  - Database migration for pantry, pantry_item, pantry_share, storage_location tables
+
+### Changed
+- Home screen replaced with `MainShellScreen` featuring a bottom navigation bar (Lists | Pantry)
+- Router updated with pantry routes (`/pantry/:id`)
+
 ## [0.6.0] - 2026-03-11
 
 ### Added
@@ -268,7 +300,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/username/tote-bag/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/username/tote-bag/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/username/tote-bag/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/username/tote-bag/compare/v0.4.0...v0.4.1

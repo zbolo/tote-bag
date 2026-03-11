@@ -64,3 +64,67 @@ export const createProductSchema = z.object({
   category: z.string().max(100).optional().nullable(),
   quantity: z.string().max(100).optional().nullable(),
 });
+
+// Pantry Schemas
+export const createPantrySchema = z.object({
+  name: z.string().min(1).max(100),
+  description: z.string().max(500).optional().nullable(),
+  color: z.string().regex(/^#[0-9A-F]{6}$/i).optional().nullable(),
+  icon: z.string().max(50).optional().nullable(),
+});
+
+export const updatePantrySchema = createPantrySchema.partial();
+
+export const addPantryItemSchema = z.object({
+  name: z.string().min(1).max(200),
+  quantity: z.number().positive().optional().nullable(),
+  maxQuantity: z.number().positive().optional().nullable(),
+  unit: z.string().max(50).optional().nullable(),
+  category: z.string().max(100).optional().nullable(),
+  storageLocationId: z.string().uuid().optional().nullable(),
+  expirationDate: z.string().datetime({ offset: true }).optional().nullable(),
+  purchaseDate: z.string().datetime({ offset: true }).optional().nullable(),
+  price: z.number().nonnegative().optional().nullable(),
+  barcode: z.string().max(50).optional().nullable(),
+  productId: z.string().uuid().optional().nullable(),
+  notes: z.string().max(500).optional().nullable(),
+  lowStockThreshold: z.number().min(0).max(1).optional().nullable(),
+});
+
+export const updatePantryItemSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  quantity: z.number().nonnegative().optional().nullable(),
+  maxQuantity: z.number().positive().optional().nullable(),
+  unit: z.string().max(50).optional().nullable(),
+  category: z.string().max(100).optional().nullable(),
+  storageLocationId: z.string().uuid().optional().nullable(),
+  expirationDate: z.string().datetime({ offset: true }).optional().nullable(),
+  purchaseDate: z.string().datetime({ offset: true }).optional().nullable(),
+  price: z.number().nonnegative().optional().nullable(),
+  notes: z.string().max(500).optional().nullable(),
+  lowStockThreshold: z.number().min(0).max(1).optional().nullable(),
+  order: z.number().int().nonnegative().optional(),
+});
+
+export const sharePantrySchema = z.object({
+  email: z.string().email(),
+  permission: z.enum(Object.values(SharePermission)),
+});
+
+export const moveFromShoppingListSchema = z.object({
+  shoppingListId: z.string().uuid(),
+  itemIds: z.array(z.string().uuid()).min(1),
+  storageLocationId: z.string().uuid().optional().nullable(),
+  removeFromList: z.boolean().optional(),
+});
+
+export const createStorageLocationSchema = z.object({
+  name: z.string().min(1).max(100),
+  icon: z.string().max(50).optional(),
+});
+
+export const updateStorageLocationSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  icon: z.string().max(50).optional(),
+  order: z.number().int().nonnegative().optional(),
+});

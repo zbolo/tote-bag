@@ -4,11 +4,13 @@ import '../services/auth_service.dart';
 import '../services/shopping_list_service.dart';
 import '../services/product_service.dart';
 import '../services/favorite_service.dart';
+import '../services/pantry_service.dart';
 import '../services/app_exception.dart';
 import '../services/logger.dart';
 import '../models/user.dart';
 import '../models/shopping_list.dart';
 import '../models/product.dart';
+import '../models/pantry.dart';
 
 /// View mode for shopping list items display.
 enum ListViewMode { list, grid }
@@ -36,6 +38,10 @@ final productServiceProvider = Provider<ProductService>(
 
 final favoriteServiceProvider = Provider<FavoriteService>(
   (ref) => FavoriteService(dio: ref.watch(apiClientProvider).dio),
+);
+
+final pantryServiceProvider = Provider<PantryService>(
+  (ref) => PantryService(ref.watch(apiClientProvider)),
 );
 
 // Auth State Providers
@@ -230,3 +236,83 @@ class FavoriteProductsNotifier
         false;
   }
 }
+
+// ── Pantry Providers ─────────────────────────────────────────
+
+/// Provider for pantry view mode (list vs grid).
+final pantryViewModeProvider = StateProvider<ListViewMode>(
+  (ref) => ListViewMode.list,
+);
+
+/// Provider for pantry storage location filter (null = show all).
+final pantryStorageFilterProvider = StateProvider<String?>(
+  (ref) => null,
+);
+
+/// Provider for pantry search query.
+final pantrySearchQueryProvider = StateProvider<String>(
+  (ref) => '',
+);
+
+// Pantries list Provider
+final pantriesProvider =
+    StateNotifierProvider<PantriesNotifier, AsyncValue<List<Pantry>>>(
+  (ref) => PantriesNotifier(ref.watch(pantryServiceProvider)),
+);
+
+class PantriesNotifier extends StateNotifier<AsyncValue<List<Pantry>>> {
+  final PantryService _service;
+  static const _tag = 'PantriesNotifier';
+
+  PantriesNotifier(this._service) : super(const AsyncValue.loading()) {
+    loadPantries();
+  }
+
+  Future<void> loadPantries() async {
+    state = const AsyncValue.loading();
+    try {
+      final pantries = await _service.getPantries();
+      Log.info(_tag, 'State updated: ${pantries.length} pantries');
+      state = AsyncValue.data(pantries);
+    } catch (error, stackTrace) {
+      Log.error(_tag, 'Failed to load pantries', error, stackTrace);
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  Future<void> createPantry({
+    required String name,
+    String? description,
+    String? color,
+    String? icon,
+  }) async {
+    try {
+      await _service.createPantry(
+        name: name,
+        description: description,
+        color: color,
+        icon: icon,
+      );
+      await loadPantries();
+    } catch (error) {
+      rethrow;
+    }
+  }
+
+  Future<void> deletePantry(String pantryId) async {
+    try {
+      await _service.deletePantry(pantryId);
+      await loadPantries();
+    } catch (error) {
+      rethrow;
+    }
+  }
+}
+
+// Single Pantry Provider
+final pantryProvider = FutureProvider.family<Pantry, String>(
+  (ref, pantryId) async {
+    final service = ref.watch(pantryServiceProvider);
+    return await service.getPantryById(pantryId);
+  },
+);

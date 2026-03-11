@@ -12,6 +12,7 @@ class ApiConfig {
   static const String listsEndpoint = '$apiPrefix/lists';
   static const String productsEndpoint = '$apiPrefix/products';
   static const String usersEndpoint = '$apiPrefix/users';
+  static const String pantriesEndpoint = '$apiPrefix/pantries';
 
   // Timeouts
   static const Duration connectTimeout = Duration(seconds: 10);

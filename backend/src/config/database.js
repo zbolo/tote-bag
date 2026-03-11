@@ -6,6 +6,10 @@ import { ShoppingListItemSchema } from '../entities/ShoppingListItem.js';
 import { ListShareSchema } from '../entities/ListShare.js';
 import { ProductSchema } from '../entities/Product.js';
 import { UserFavoriteProductSchema } from '../entities/UserFavoriteProduct.js';
+import { PantrySchema } from '../entities/Pantry.js';
+import { PantryItemSchema } from '../entities/PantryItem.js';
+import { PantryShareSchema } from '../entities/PantryShare.js';
+import { StorageLocationSchema } from '../entities/StorageLocation.js';
 
 /**
  * MikroORM configuration
@@ -18,7 +22,7 @@ export const ormConfig = {
   dbName: process.env.DB_NAME || 'tote_bag',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
-  entities: [UserSchema, ShoppingListSchema, ShoppingListItemSchema, ListShareSchema, ProductSchema, UserFavoriteProductSchema],
+  entities: [UserSchema, ShoppingListSchema, ShoppingListItemSchema, ListShareSchema, ProductSchema, UserFavoriteProductSchema, PantrySchema, PantryItemSchema, PantryShareSchema, StorageLocationSchema],
   debug: process.env.NODE_ENV === 'development',
   migrations: {
     path: './src/migrations',

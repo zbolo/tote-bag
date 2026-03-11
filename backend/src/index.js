@@ -19,6 +19,7 @@ import productsRouter from './routes/products.js';
 import usersRouter from './routes/users.js';
 import favoritesRouter from './routes/favoriteProducts.js';
 import adminRouter from './routes/admin.js';
+import pantriesRouter from './routes/pantries.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -120,6 +121,7 @@ app.use(`/api/${apiVersion}/products`, productsRouter);
 app.use(`/api/${apiVersion}/users`, usersRouter);
 app.use(`/api/${apiVersion}/favorites`, favoritesRouter);
 app.use(`/api/${apiVersion}/admin`, adminRouter);
+app.use(`/api/${apiVersion}/pantries`, pantriesRouter);
 
 // Health check
 app.get('/health', (_req, res) => {

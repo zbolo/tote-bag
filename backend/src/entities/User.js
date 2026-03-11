@@ -49,6 +49,16 @@ export const UserSchema = new EntitySchema({
       entity: 'ListShare',
       mappedBy: 'user',
     },
+    ownedPantries: {
+      kind: '1:m',
+      entity: 'Pantry',
+      mappedBy: 'owner',
+    },
+    sharedPantries: {
+      kind: '1:m',
+      entity: 'PantryShare',
+      mappedBy: 'user',
+    },
     createdAt: {
       type: 'Date',
       onCreate: () => new Date(),

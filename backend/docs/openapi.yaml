@@ -17,7 +17,7 @@ info:
 
     ## SuperTokens Dashboard
     Available at `/api/auth/dashboard` for user management.
-  version: 0.6.0
+  version: 0.7.0
   contact:
     name: Tote Bag Team
 
@@ -40,6 +40,8 @@ tags:
     description: Product search and barcode lookup
   - name: Favorites
     description: Favorite products management
+  - name: Pantries
+    description: Pantry management, items, storage locations, and smart features
   - name: Admin
     description: Administrative endpoints
 
@@ -164,6 +166,121 @@ components:
         category:
           type: string
           nullable: true
+
+    Pantry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+        icon:
+          type: string
+          nullable: true
+        owner:
+          $ref: "#/components/schemas/User"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PantryItem"
+        storageLocations:
+          type: array
+          items:
+            $ref: "#/components/schemas/StorageLocation"
+        isArchived:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PantryItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        quantity:
+          type: number
+          format: double
+          description: Current remaining quantity
+        maxQuantity:
+          type: number
+          format: double
+          description: Original purchased quantity
+        unit:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        storageLocation:
+          $ref: "#/components/schemas/StorageLocation"
+          nullable: true
+        product:
+          $ref: "#/components/schemas/Product"
+          nullable: true
+        barcode:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        expirationDate:
+          type: string
+          format: date-time
+          nullable: true
+        purchaseDate:
+          type: string
+          format: date-time
+          nullable: true
+        price:
+          type: number
+          format: double
+          nullable: true
+        lowStockThreshold:
+          type: number
+          format: double
+          description: Fraction (0-1) of maxQuantity for low stock warning
+        order:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    StorageLocation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        icon:
+          type: string
+          description: Material icon name
+        order:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
 paths:
   /health:
@@ -1177,3 +1294,515 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  # ── Pantry Endpoints ────────────────────────────────────────
+
+  /api/v1/pantries:
+    get:
+      tags: [Pantries]
+      summary: Get all pantries for the authenticated user
+      description: Returns owned and shared pantries (excluding archived)
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: List of pantries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      pantries:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Pantry"
+    post:
+      tags: [Pantries]
+      summary: Create a new pantry
+      description: Creates a pantry with default storage locations (Fridge, Freezer, Cupboard, Cellar, Other)
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                color:
+                  type: string
+                  pattern: "^#[0-9A-F]{6}$"
+                  nullable: true
+                icon:
+                  type: string
+                  maxLength: 50
+                  nullable: true
+      responses:
+        "201":
+          description: Pantry created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      pantry:
+                        $ref: "#/components/schemas/Pantry"
+
+  /api/v1/pantries/{pantryId}:
+    get:
+      tags: [Pantries]
+      summary: Get a pantry by ID
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Pantry details with items and storage locations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      pantry:
+                        $ref: "#/components/schemas/Pantry"
+    patch:
+      tags: [Pantries]
+      summary: Update a pantry
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+      responses:
+        "200":
+          description: Pantry updated
+    delete:
+      tags: [Pantries]
+      summary: Delete a pantry (owner only)
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Pantry deleted
+
+  /api/v1/pantries/{pantryId}/items:
+    post:
+      tags: [Pantries]
+      summary: Add an item to a pantry
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                quantity:
+                  type: number
+                maxQuantity:
+                  type: number
+                unit:
+                  type: string
+                  nullable: true
+                category:
+                  type: string
+                  nullable: true
+                storageLocationId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                expirationDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+                purchaseDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+                price:
+                  type: number
+                  nullable: true
+                lowStockThreshold:
+                  type: number
+                  description: Fraction 0-1 (default 0.25)
+      responses:
+        "201":
+          description: Item added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      item:
+                        $ref: "#/components/schemas/PantryItem"
+
+  /api/v1/pantries/{pantryId}/items/{itemId}:
+    patch:
+      tags: [Pantries]
+      summary: Update a pantry item (e.g. adjust quantity via slider)
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: number
+                  description: Current remaining quantity
+                storageLocationId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                expirationDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+      responses:
+        "200":
+          description: Item updated
+    delete:
+      tags: [Pantries]
+      summary: Delete a pantry item
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Item deleted
+
+  /api/v1/pantries/{pantryId}/locations:
+    post:
+      tags: [Pantries]
+      summary: Add a custom storage location
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                icon:
+                  type: string
+                  maxLength: 50
+      responses:
+        "201":
+          description: Storage location added
+
+  /api/v1/pantries/{pantryId}/locations/{locationId}:
+    patch:
+      tags: [Pantries]
+      summary: Update a storage location
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: locationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                icon:
+                  type: string
+      responses:
+        "200":
+          description: Location updated
+    delete:
+      tags: [Pantries]
+      summary: Delete a storage location (items moved to uncategorized)
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: locationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Location deleted
+
+  /api/v1/pantries/{pantryId}/expiring:
+    get:
+      tags: [Pantries]
+      summary: Get items expiring within N days
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 7
+      responses:
+        "200":
+          description: Expiring items sorted by expiration date
+
+  /api/v1/pantries/{pantryId}/low-stock:
+    get:
+      tags: [Pantries]
+      summary: Get items that are running low
+      description: Returns items where quantity <= lowStockThreshold * maxQuantity
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Low-stock items
+
+  /api/v1/pantries/{pantryId}/suggest-shopping-list:
+    get:
+      tags: [Pantries]
+      summary: Get shopping list suggestions from low-stock items
+      description: Returns low-stock items formatted for adding to a shopping list
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Shopping list suggestions
+
+  /api/v1/pantries/{pantryId}/items/from-shopping-list:
+    post:
+      tags: [Pantries]
+      summary: Move items from a shopping list to the pantry
+      description: Creates pantry items from checked shopping list items with optional auto-removal
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [shoppingListId, itemIds]
+              properties:
+                shoppingListId:
+                  type: string
+                  format: uuid
+                itemIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  minItems: 1
+                storageLocationId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                removeFromList:
+                  type: boolean
+                  default: false
+      responses:
+        "201":
+          description: Items moved to pantry
+
+  /api/v1/pantries/{pantryId}/share:
+    post:
+      tags: [Pantries]
+      summary: Share a pantry with another user
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, permission]
+              properties:
+                email:
+                  type: string
+                  format: email
+                permission:
+                  type: string
+                  enum: [read, write, admin]
+      responses:
+        "201":
+          description: Pantry shared
+
+  /api/v1/pantries/{pantryId}/share/{userId}:
+    delete:
+      tags: [Pantries]
+      summary: Unshare a pantry from a user
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: pantryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Pantry unshared
