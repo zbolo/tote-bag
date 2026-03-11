@@ -537,8 +537,8 @@ class _AddPantryItemScreenState extends ConsumerState<AddPantryItemScreen> {
             ? null
             : _categoryController.text.trim(),
         storageLocationId: _selectedLocationId,
-        expirationDate: _expirationDate?.toIso8601String(),
-        purchaseDate: _purchaseDate?.toIso8601String(),
+        expirationDate: _expirationDate?.toUtc().toIso8601String(),
+        purchaseDate: _purchaseDate?.toUtc().toIso8601String(),
         price: price,
         barcode: _scannedBarcode,
         productId: _scannedProduct?.id,
