@@ -10,6 +10,15 @@ import '../models/user.dart';
 import '../models/shopping_list.dart';
 import '../models/product.dart';
 
+/// View mode for shopping list items display.
+enum ListViewMode { list, grid }
+
+/// Provider for the current list view mode (list vs card/grid).
+/// Persisted per session; defaults to list view.
+final listViewModeProvider = StateProvider<ListViewMode>(
+  (ref) => ListViewMode.list,
+);
+
 // Service Providers
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 

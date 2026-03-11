@@ -5,10 +5,12 @@ import '../../config/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../services/logger.dart';
 import '../../widgets/list_item_card.dart';
+import '../../widgets/list_item_grid_card.dart';
 import '../../widgets/add_item_dialog.dart';
 import '../../widgets/product_grid_item.dart';
 import '../../widgets/error_snackbar.dart';
 import '../../models/product.dart';
+import '../../models/shopping_list_item.dart';
 
 class ListDetailScreen extends ConsumerWidget {
   final String listId;
@@ -21,6 +23,7 @@ class ListDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final listAsync = ref.watch(shoppingListProvider(listId));
+    final viewMode = ref.watch(listViewModeProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -30,6 +33,24 @@ class ListDetailScreen extends ConsumerWidget {
           error: (_, __) => const Text('Error'),
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              viewMode == ListViewMode.list
+                  ? Icons.grid_view_rounded
+                  : Icons.view_list_rounded,
+            ),
+            tooltip: viewMode == ListViewMode.list
+                ? 'Switch to card view'
+                : 'Switch to list view',
+            onPressed: () {
+              final newMode = viewMode == ListViewMode.list
+                  ? ListViewMode.grid
+                  : ListViewMode.list;
+              ref.read(listViewModeProvider.notifier).state = newMode;
+              Log.debug('ListDetailScreen',
+                  'View mode toggled → ${newMode.name}');
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.qr_code_scanner),
             onPressed: () => context.push('/scanner/$listId'),
@@ -240,49 +261,11 @@ class ListDetailScreen extends ConsumerWidget {
                             ],
                           ),
                         )
-                      : ListView(
-                          padding: const EdgeInsets.all(16),
-                          children: [
-                            if (uncheckedItems.isNotEmpty) ...[
-                              ...uncheckedItems.map((item) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: ListItemCard(
-                                      item: item,
-                                      listId: listId,
-                                      onRefresh: () {
-                                        ref.invalidate(
-                                            shoppingListProvider(listId));
-                                      },
-                                    ),
-                                  )),
-                            ],
-                            if (checkedItems.isNotEmpty) ...[
-                              if (uncheckedItems.isNotEmpty)
-                                const SizedBox(height: 16),
-                              Text(
-                                'Checked Items',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      color: AppTheme.textSecondaryColor,
-                                    ),
-                              ),
-                              const SizedBox(height: 12),
-                              ...checkedItems.map((item) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: ListItemCard(
-                                      item: item,
-                                      listId: listId,
-                                      onRefresh: () {
-                                        ref.invalidate(
-                                            shoppingListProvider(listId));
-                                      },
-                                    ),
-                                  )),
-                            ],
-                          ],
-                        ),
+                      : viewMode == ListViewMode.list
+                          ? _buildListView(
+                              context, ref, uncheckedItems, checkedItems)
+                          : _buildGridView(
+                              context, ref, uncheckedItems, checkedItems),
                 ),
               ],
             ),
@@ -333,6 +316,120 @@ class ListDetailScreen extends ConsumerWidget {
         },
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget _buildListView(
+    BuildContext context,
+    WidgetRef ref,
+    List<ShoppingListItem> uncheckedItems,
+    List<ShoppingListItem> checkedItems,
+  ) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        if (uncheckedItems.isNotEmpty) ...[
+          ...uncheckedItems.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: ListItemCard(
+                  item: item,
+                  listId: listId,
+                  onRefresh: () {
+                    ref.invalidate(shoppingListProvider(listId));
+                  },
+                ),
+              )),
+        ],
+        if (checkedItems.isNotEmpty) ...[
+          if (uncheckedItems.isNotEmpty) const SizedBox(height: 16),
+          Text(
+            'Checked Items',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppTheme.textSecondaryColor,
+                ),
+          ),
+          const SizedBox(height: 12),
+          ...checkedItems.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: ListItemCard(
+                  item: item,
+                  listId: listId,
+                  onRefresh: () {
+                    ref.invalidate(shoppingListProvider(listId));
+                  },
+                ),
+              )),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildGridView(
+    BuildContext context,
+    WidgetRef ref,
+    List<ShoppingListItem> uncheckedItems,
+    List<ShoppingListItem> checkedItems,
+  ) {
+    return CustomScrollView(
+      slivers: [
+        if (uncheckedItems.isNotEmpty)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 0.75,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => ListItemGridCard(
+                  item: uncheckedItems[index],
+                  listId: listId,
+                  onRefresh: () {
+                    ref.invalidate(shoppingListProvider(listId));
+                  },
+                ),
+                childCount: uncheckedItems.length,
+              ),
+            ),
+          ),
+        if (checkedItems.isNotEmpty) ...[
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+                16, uncheckedItems.isNotEmpty ? 24 : 16, 16, 8),
+            sliver: SliverToBoxAdapter(
+              child: Text(
+                'Checked Items',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppTheme.textSecondaryColor,
+                    ),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 0.75,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => ListItemGridCard(
+                  item: checkedItems[index],
+                  listId: listId,
+                  onRefresh: () {
+                    ref.invalidate(shoppingListProvider(listId));
+                  },
+                ),
+                childCount: checkedItems.length,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
