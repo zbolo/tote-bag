@@ -79,8 +79,9 @@ class ListDetailScreen extends ConsumerWidget {
             },
             child: Column(
               children: [
-                // Progress Bar (always visible for consistent layout)
-                Container(
+                // Progress Bar
+                if (list.items.isNotEmpty)
+                  Container(
                   padding: const EdgeInsets.all(16),
                   color: AppTheme.surfaceColor,
                   child: Column(
