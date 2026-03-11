@@ -10,6 +10,7 @@ import '../../widgets/add_item_dialog.dart';
 import '../../widgets/product_grid_item.dart';
 import '../../widgets/error_snackbar.dart';
 import '../../models/product.dart';
+import '../../models/shopping_list.dart';
 import '../../models/shopping_list_item.dart';
 
 class ListDetailScreen extends ConsumerWidget {
@@ -78,119 +79,6 @@ class ListDetailScreen extends ConsumerWidget {
             },
             child: Column(
               children: [
-                // Product Grid Section (Bring! style)
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.backgroundColor,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Quick Add',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                            TextButton.icon(
-                              onPressed: () => context.push('/scanner/$listId'),
-                              icon: const Icon(Icons.qr_code_scanner, size: 18),
-                              label: const Text('Scan'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppTheme.primaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        height: 280,
-                        child: favoritesAsync.when(
-                          data: (favorites) {
-                            if (favorites.isEmpty) {
-                              return Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Text(
-                                    'Star products to see them here for quick add',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          color: AppTheme.textSecondaryColor,
-                                        ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              );
-                            }
-
-                            // Get product IDs that are already in the list
-                            final productsInList = list.items
-                                .where((item) => item.product != null)
-                                .map((item) => item.product!.id)
-                                .toSet();
-
-                            return GridView.builder(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              scrollDirection: Axis.horizontal,
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                mainAxisSpacing: 10,
-                                crossAxisSpacing: 10,
-                                childAspectRatio: 0.75,
-                              ),
-                              itemCount: favorites.length,
-                              itemBuilder: (context, index) {
-                                final product = favorites[index];
-                                final isInList =
-                                    productsInList.contains(product.id);
-
-                                return ProductGridItem(
-                                  product: product,
-                                  isInList: isInList,
-                                  onTap: () => _quickAddProduct(
-                                      context, ref, product, isInList),
-                                );
-                              },
-                            );
-                          },
-                          loading: () =>
-                              const Center(child: CircularProgressIndicator()),
-                          error: (_, __) => Center(
-                            child: Text(
-                              'Could not load favorites',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: AppTheme.textSecondaryColor,
-                                  ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
                 // Progress Bar
                 if (list.items.isNotEmpty)
                   Container(
@@ -227,46 +115,16 @@ class ListDetailScreen extends ConsumerWidget {
                     ),
                   ),
 
-                // Shopping List Section
+                // Shopping List + Favorites (scrollable)
                 Expanded(
                   child: list.items.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.shopping_cart_outlined,
-                                size: 64,
-                                color: AppTheme.textTertiaryColor,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No items in this list',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge
-                                    ?.copyWith(
-                                      color: AppTheme.textSecondaryColor,
-                                    ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Tap products above or use the + button',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: AppTheme.textTertiaryColor,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        )
+                      ? _buildEmptyWithFavorites(
+                          context, ref, list, favoritesAsync)
                       : viewMode == ListViewMode.list
-                          ? _buildListView(
-                              context, ref, uncheckedItems, checkedItems)
-                          : _buildGridView(
-                              context, ref, uncheckedItems, checkedItems),
+                          ? _buildListView(context, ref, uncheckedItems,
+                              checkedItems, list, favoritesAsync)
+                          : _buildGridView(context, ref, uncheckedItems,
+                              checkedItems, list, favoritesAsync),
                 ),
               ],
             ),
@@ -320,11 +178,49 @@ class ListDetailScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildEmptyWithFavorites(
+    BuildContext context,
+    WidgetRef ref,
+    ShoppingList list,
+    AsyncValue<List<Product>> favoritesAsync,
+  ) {
+    return ListView(
+      children: [
+        const SizedBox(height: 48),
+        const Icon(
+          Icons.shopping_cart_outlined,
+          size: 64,
+          color: AppTheme.textTertiaryColor,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'No items in this list',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppTheme.textSecondaryColor,
+              ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Tap a favorite below or use the + button',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTheme.textTertiaryColor,
+              ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 32),
+        ..._buildFavoritesSection(context, ref, list, favoritesAsync),
+      ],
+    );
+  }
+
   Widget _buildListView(
     BuildContext context,
     WidgetRef ref,
     List<ShoppingListItem> uncheckedItems,
     List<ShoppingListItem> checkedItems,
+    ShoppingList list,
+    AsyncValue<List<Product>> favoritesAsync,
   ) {
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -361,6 +257,8 @@ class ListDetailScreen extends ConsumerWidget {
                 ),
               )),
         ],
+        // Favorites section at the bottom
+        ..._buildFavoritesSection(context, ref, list, favoritesAsync),
       ],
     );
   }
@@ -370,7 +268,14 @@ class ListDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     List<ShoppingListItem> uncheckedItems,
     List<ShoppingListItem> checkedItems,
+    ShoppingList list,
+    AsyncValue<List<Product>> favoritesAsync,
   ) {
+    final productsInList = list.items
+        .where((item) => item.product != null)
+        .map((item) => item.product!.id)
+        .toSet();
+
     return CustomScrollView(
       slivers: [
         if (uncheckedItems.isNotEmpty)
@@ -432,7 +337,159 @@ class ListDetailScreen extends ConsumerWidget {
             ),
           ),
         ],
+        // Favorites section at the bottom
+        ..._buildFavoritesSlivers(
+            context, ref, list, favoritesAsync, productsInList),
       ],
+    );
+  }
+
+  /// Builds the favorites section as regular widgets (for ListView).
+  List<Widget> _buildFavoritesSection(
+    BuildContext context,
+    WidgetRef ref,
+    ShoppingList list,
+    AsyncValue<List<Product>> favoritesAsync,
+  ) {
+    return favoritesAsync.when(
+      data: (favorites) {
+        if (favorites.isEmpty) return [];
+
+        final productsInList = list.items
+            .where((item) => item.product != null)
+            .map((item) => item.product!.id)
+            .toSet();
+
+        return [
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Quick Add',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                TextButton.icon(
+                  onPressed: () => context.push('/scanner/$listId'),
+                  icon: const Icon(Icons.qr_code_scanner, size: 18),
+                  label: const Text('Scan'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.primaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.75,
+            ),
+            itemCount: favorites.length,
+            itemBuilder: (context, index) {
+              final product = favorites[index];
+              final isInList = productsInList.contains(product.id);
+
+              return ProductGridItem(
+                product: product,
+                isInList: isInList,
+                onTap: () =>
+                    _quickAddProduct(context, ref, product, isInList),
+              );
+            },
+          ),
+          const SizedBox(height: 80), // space for FAB
+        ];
+      },
+      loading: () => [
+        const Padding(
+          padding: EdgeInsets.all(32),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ],
+      error: (_, __) => [],
+    );
+  }
+
+  /// Builds the favorites section as slivers (for CustomScrollView / grid view).
+  List<Widget> _buildFavoritesSlivers(
+    BuildContext context,
+    WidgetRef ref,
+    ShoppingList list,
+    AsyncValue<List<Product>> favoritesAsync,
+    Set<String> productsInList,
+  ) {
+    return favoritesAsync.when(
+      data: (favorites) {
+        if (favorites.isEmpty) return [];
+
+        return [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+            sliver: SliverToBoxAdapter(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Quick Add',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => context.push('/scanner/$listId'),
+                    icon: const Icon(Icons.qr_code_scanner, size: 18),
+                    label: const Text('Scan'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppTheme.primaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 0.75,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final product = favorites[index];
+                  final isInList = productsInList.contains(product.id);
+
+                  return ProductGridItem(
+                    product: product,
+                    isInList: isInList,
+                    onTap: () =>
+                        _quickAddProduct(context, ref, product, isInList),
+                  );
+                },
+                childCount: favorites.length,
+              ),
+            ),
+          ),
+        ];
+      },
+      loading: () => [
+        const SliverFillRemaining(
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ],
+      error: (_, __) => [],
     );
   }
 
