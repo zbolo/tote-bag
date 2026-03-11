@@ -59,6 +59,10 @@ pgadmin_data/
 # Docker
 .docker/
 
+# Uploaded files (keep directory structure)
+backend/uploads/products/*
+!backend/uploads/products/.gitkeep
+
 # Temporary files
 tmp/
 temp/

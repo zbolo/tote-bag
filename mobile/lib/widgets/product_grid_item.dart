@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../config/app_theme.dart';
 import '../models/product.dart';
@@ -35,10 +36,18 @@ class ProductGridItem extends StatelessWidget {
                   flex: 3,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      product.imageUrl!,
+                    child: CachedNetworkImage(
+                      imageUrl: product.imageUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                      width: double.infinity,
+                      placeholder: (_, __) => _buildPlaceholder(
+                        child: const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (_, __, ___) => _buildPlaceholder(),
                     ),
                   ),
                 )
@@ -103,18 +112,19 @@ class ProductGridItem extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder({Widget? child}) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.dividerColor,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Center(
-        child: Icon(
-          Icons.shopping_basket,
-          size: 32,
-          color: AppTheme.textSecondaryColor,
-        ),
+      child: Center(
+        child: child ??
+            const Icon(
+              Icons.shopping_basket,
+              size: 32,
+              color: AppTheme.textSecondaryColor,
+            ),
       ),
     );
   }

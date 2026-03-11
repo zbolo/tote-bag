@@ -17,7 +17,7 @@ info:
 
     ## SuperTokens Dashboard
     Available at `/api/auth/dashboard` for user management.
-  version: 0.2.0
+  version: 0.5.0
   contact:
     name: Tote Bag Team
 
@@ -868,6 +868,123 @@ paths:
                         type: array
                         items:
                           $ref: "#/components/schemas/Product"
+
+  /api/v1/products:
+    post:
+      tags: [Products]
+      summary: Create a product manually
+      description: Create a product manually (e.g. when barcode not found in OpenFoodFacts). Supports optional image upload via multipart form data.
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, barcode]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  description: Product name
+                barcode:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  description: Product barcode
+                brand:
+                  type: string
+                  maxLength: 200
+                  nullable: true
+                  description: Brand name
+                category:
+                  type: string
+                  maxLength: 100
+                  nullable: true
+                  description: Product category
+                quantity:
+                  type: string
+                  maxLength: 100
+                  nullable: true
+                  description: Product quantity/size
+                image:
+                  type: string
+                  format: binary
+                  description: Product image (JPEG, PNG, or WebP, max 5 MB)
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      product:
+                        $ref: "#/components/schemas/Product"
+
+  /api/v1/products/{productId}/image:
+    post:
+      tags: [Products]
+      summary: Upload product image
+      description: Upload or replace the image for an existing product.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Product ID
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Product image (JPEG, PNG, or WebP, max 5 MB)
+      responses:
+        "200":
+          description: Image uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      product:
+                        $ref: "#/components/schemas/Product"
+        "400":
+          description: No image file provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v1/favorites:
     get:

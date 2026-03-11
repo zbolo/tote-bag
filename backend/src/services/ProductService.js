@@ -91,6 +91,55 @@ export class ProductService {
   }
 
   /**
+   * Create a product manually (user-submitted)
+   * @param {Object} data - Product data
+   * @param {string} data.barcode - Product barcode
+   * @param {string} data.name - Product name
+   * @param {string|null} [data.brand] - Brand name
+   * @param {string|null} [data.category] - Category
+   * @param {string|null} [data.quantity] - Quantity/size
+   * @param {string|null} [data.imageUrl] - Image URL
+   * @param {string} [data.source] - Data source
+   * @returns {Promise<Product>}
+   */
+  async createProduct(data) {
+    console.log(`[ProductService] Creating manual product: "${data.name}" (barcode: ${data.barcode})`);
+
+    // Check if product with this barcode already exists
+    const existing = await this.em.findOne('Product', { barcode: data.barcode });
+    if (existing) {
+      console.log(`[ProductService] Product with barcode ${data.barcode} already exists, updating`);
+      this.em.assign(existing, {
+        name: data.name,
+        brand: data.brand,
+        category: data.category,
+        quantity: data.quantity,
+        imageUrl: data.imageUrl || existing.imageUrl,
+        source: data.source || existing.source,
+      });
+      await this.em.flush();
+      return existing;
+    }
+
+    const product = this.em.create('Product', {
+      barcode: data.barcode,
+      name: data.name,
+      brand: data.brand || null,
+      description: null,
+      imageUrl: data.imageUrl || null,
+      category: data.category || null,
+      quantity: data.quantity || null,
+      nutritionData: null,
+      source: data.source || 'user',
+      lastFetchedAt: null,
+    });
+
+    await this.em.persistAndFlush(product);
+    console.log(`[ProductService] Manual product created: ${product.id}`);
+    return product;
+  }
+
+  /**
    * Search products by query
    * @param {string} query - Search query
    * @param {number} [limit=20] - Maximum number of results

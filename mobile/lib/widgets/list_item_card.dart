@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/app_theme.dart';
@@ -40,12 +41,25 @@ class ListItemCard extends ConsumerWidget {
               if (item.product?.imageUrl != null)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    item.product!.imageUrl!,
+                  child: CachedNetworkImage(
+                    imageUrl: item.product!.imageUrl!,
                     width: 48,
                     height: 48,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    placeholder: (_, __) => Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppTheme.dividerColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                    errorWidget: (_, __, ___) => Container(
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(

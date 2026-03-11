@@ -56,3 +56,11 @@ export const searchProductsSchema = z.object({
   query: z.string().min(1),
   limit: z.number().int().positive().max(50).optional(),
 });
+
+export const createProductSchema = z.object({
+  name: z.string().min(1).max(200),
+  barcode: z.string().min(1).max(50),
+  brand: z.string().max(200).optional().nullable(),
+  category: z.string().max(100).optional().nullable(),
+  quantity: z.string().max(100).optional().nullable(),
+});

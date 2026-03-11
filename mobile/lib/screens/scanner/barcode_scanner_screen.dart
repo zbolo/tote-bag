@@ -1,11 +1,17 @@
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
+import '../../config/app_theme.dart';
+import '../../models/product.dart';
 import '../../providers/providers.dart';
 import '../../services/logger.dart';
 import '../../widgets/error_snackbar.dart';
-import '../../models/product.dart';
 
 class BarcodeScannerScreen extends ConsumerStatefulWidget {
   final String listId;
@@ -87,15 +93,43 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (product.imageUrl != null)
-              Center(
-                child: Image.network(
-                  product.imageUrl!,
-                  height: 100,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.image_not_supported),
+            // Product image
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 140,
+                  height: 140,
+                  child: product.imageUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: product.imageUrl!,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(
+                            color: AppTheme.dividerColor,
+                            child: const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                          errorWidget: (_, __, ___) => Container(
+                            color: AppTheme.dividerColor,
+                            child: const Icon(
+                              Icons.image_not_supported,
+                              size: 48,
+                              color: AppTheme.textSecondaryColor,
+                            ),
+                          ),
+                        )
+                      : Container(
+                          color: AppTheme.dividerColor,
+                          child: const Icon(
+                            Icons.shopping_basket,
+                            size: 48,
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                        ),
                 ),
               ),
+            ),
             const SizedBox(height: 16),
             Text(
               product.displayName,
@@ -131,41 +165,177 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
 
   Future<void> _showManualEntryDialog(String barcode) async {
     final nameController = TextEditingController();
+    final imagePicker = ImagePicker();
+    String? selectedImagePath;
 
-    final shouldAdd = await showDialog<bool>(
+    final result = await showDialog<_ManualEntryResult>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Product Not Found'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Barcode: $barcode'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Product Name',
-                hintText: 'Enter product name',
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Product Not Found'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Barcode: $barcode',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTheme.textSecondaryColor,
+                      ),
+                ),
+                const SizedBox(height: 16),
+
+                // Image picker area
+                GestureDetector(
+                  onTap: () async {
+                    Log.debug(_tag, 'Opening image source picker');
+                    final source = await showModalBottomSheet<ImageSource>(
+                      context: context,
+                      builder: (ctx) => SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.camera_alt),
+                              title: const Text('Take Photo'),
+                              onTap: () =>
+                                  Navigator.pop(ctx, ImageSource.camera),
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.photo_library),
+                              title: const Text('Choose from Gallery'),
+                              onTap: () =>
+                                  Navigator.pop(ctx, ImageSource.gallery),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+
+                    if (source == null) return;
+
+                    Log.debug(_tag, 'Picking image from ${source.name}');
+                    final picked = await imagePicker.pickImage(
+                      source: source,
+                      maxWidth: 800,
+                      maxHeight: 800,
+                      imageQuality: 85,
+                    );
+
+                    if (picked != null) {
+                      Log.info(
+                          _tag, 'Image selected: ${picked.path}');
+                      setDialogState(() {
+                        selectedImagePath = picked.path;
+                      });
+                    }
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      color: AppTheme.dividerColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppTheme.textTertiaryColor.withValues(alpha: 0.3),
+                        width: 1.5,
+                        strokeAlign: BorderSide.strokeAlignInside,
+                      ),
+                    ),
+                    child: selectedImagePath != null
+                        ? Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(11),
+                                child: Image.file(
+                                  File(selectedImagePath!),
+                                  width: double.infinity,
+                                  height: 150,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: Material(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(16),
+                                    onTap: () {
+                                      Log.debug(_tag, 'Image removed');
+                                      setDialogState(() {
+                                        selectedImagePath = null;
+                                      });
+                                    },
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(4),
+                                      child: Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_a_photo,
+                                size: 40,
+                                color: AppTheme.textSecondaryColor,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Add product photo',
+                                style: TextStyle(
+                                  color: AppTheme.textSecondaryColor,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Product Name',
+                    hintText: 'Enter product name',
+                  ),
+                  autofocus: true,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, null),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(
+                context,
+                _ManualEntryResult(
+                  name: nameController.text,
+                  imagePath: selectedImagePath,
+                ),
               ),
-              autofocus: true,
+              child: const Text('Add to List'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Add to List'),
-          ),
-        ],
       ),
     );
 
-    if (shouldAdd == true && nameController.text.isNotEmpty) {
-      await _addManualItem(nameController.text, barcode);
+    if (result != null && result.name.isNotEmpty) {
+      await _addManualItemWithImage(result.name, barcode, result.imagePath);
     }
   }
 
@@ -193,14 +363,32 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
     }
   }
 
-  Future<void> _addManualItem(String name, String barcode) async {
-    Log.info(_tag, 'Adding manual item "$name" (barcode: $barcode)');
+  Future<void> _addManualItemWithImage(
+    String name,
+    String barcode,
+    String? imagePath,
+  ) async {
+    Log.info(
+        _tag, 'Adding manual item "$name" (barcode: $barcode, hasImage: ${imagePath != null})');
     try {
-      final service = ref.read(shoppingListServiceProvider);
-      await service.addItem(
-        listId: widget.listId,
+      final productService = ref.read(productServiceProvider);
+
+      // Create the product on backend (with optional image)
+      final product = await productService.createProduct(
         name: name,
         barcode: barcode,
+        imagePath: imagePath,
+      );
+
+      Log.info(_tag, 'Product created: ${product.id}, adding to list');
+
+      // Add to shopping list
+      final listService = ref.read(shoppingListServiceProvider);
+      await listService.addItem(
+        listId: widget.listId,
+        name: product.name,
+        barcode: product.barcode,
+        productId: product.id,
       );
 
       if (mounted) {
@@ -288,4 +476,12 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
       ),
     );
   }
+}
+
+/// Holds the result from the manual entry dialog.
+class _ManualEntryResult {
+  final String name;
+  final String? imagePath;
+
+  _ManualEntryResult({required this.name, this.imagePath});
 }

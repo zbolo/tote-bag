@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-03-11
+
+### Added
+- Product image support for barcode scans
+  - OpenFoodFacts images are displayed in product dialog, grid tiles, and list item cards using CachedNetworkImage for efficient caching
+  - Manual product creation with image upload when barcode is not found in OpenFoodFacts
+  - Image picker dialog (camera or gallery) in the "Product Not Found" manual entry screen
+  - Backend image upload endpoint (`POST /api/v1/products`) with multer (JPEG, PNG, WebP, max 5 MB)
+  - Backend image replacement endpoint (`POST /api/v1/products/:productId/image`)
+  - Static file serving for uploaded product images at `/uploads/products/`
+  - Backend `ProductService.createProduct()` for user-submitted products
+  - Mobile `ProductService.createProduct()` and `uploadProductImage()` with multipart form data
+- `image_picker` package for camera/gallery image selection on mobile
+- `multer` package for multipart file upload handling on backend
+- `createProductSchema` Zod validation for product creation endpoint
+- OpenAPI spec updated with new product creation and image upload endpoints
+
+### Changed
+- Product widgets (`ProductGridItem`, `ListItemCard`) now use `CachedNetworkImage` instead of `Image.network` for better caching and loading states
+- Scanner's product found dialog displays larger (140px) image with rounded corners
+- Scanner's manual entry dialog redesigned with image upload area, camera/gallery picker, and remove button
+
 ## [0.4.1] - 2026-03-11
 
 ### Changed
@@ -211,7 +233,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/username/tote-bag/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/username/tote-bag/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/username/tote-bag/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/username/tote-bag/compare/v0.2.1...v0.3.0

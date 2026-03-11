@@ -64,4 +64,95 @@ class ProductService {
     }
     return [];
   }
+
+  /// Create a product manually with optional image file.
+  /// [imagePath] is the local file path of the image to upload.
+  Future<Product> createProduct({
+    required String name,
+    required String barcode,
+    String? brand,
+    String? category,
+    String? quantity,
+    String? imagePath,
+  }) async {
+    Log.info(_tag, 'Creating product "$name" (barcode: $barcode)');
+    try {
+      final formData = FormData.fromMap({
+        'name': name,
+        'barcode': barcode,
+        if (brand != null) 'brand': brand,
+        if (category != null) 'category': category,
+        if (quantity != null) 'quantity': quantity,
+        if (imagePath != null)
+          'image': await MultipartFile.fromFile(
+            imagePath,
+            filename: 'product_$barcode.jpg',
+          ),
+      });
+
+      final response = await _apiClient.dio.post(
+        ApiConfig.productsEndpoint,
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+
+      if (response.statusCode == 201 && response.data['status'] == 'success') {
+        final product = Product.fromJson(
+          response.data['data']['product'] as Map<String, dynamic>,
+        );
+        Log.info(_tag, 'Created product: "${product.name}" (${product.id})');
+        return product;
+      }
+
+      throw const AppException('Could not create the product. Please try again.');
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      Log.error(_tag, 'Error creating product "$name"', e);
+      throw AppException.fromDio(e, context: 'Create product');
+    } catch (e) {
+      Log.error(_tag, 'Unexpected error creating product', e);
+      throw AppException.from(e, context: 'Create product');
+    }
+  }
+
+  /// Upload or replace the image for an existing product.
+  Future<Product> uploadProductImage({
+    required String productId,
+    required String imagePath,
+  }) async {
+    Log.info(_tag, 'Uploading image for product $productId');
+    try {
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(
+          imagePath,
+          filename: 'product_$productId.jpg',
+        ),
+      });
+
+      final response = await _apiClient.dio.post(
+        '${ApiConfig.productsEndpoint}/$productId/image',
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+
+      if (response.statusCode == 200 && response.data['status'] == 'success') {
+        final product = Product.fromJson(
+          response.data['data']['product'] as Map<String, dynamic>,
+        );
+        Log.info(_tag, 'Image uploaded for product "${product.name}"');
+        return product;
+      }
+
+      throw const AppException('Could not upload the image. Please try again.');
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      Log.error(_tag, 'Error uploading image for product $productId', e);
+      throw AppException.fromDio(e, context: 'Upload product image');
+    } catch (e) {
+      Log.error(_tag, 'Unexpected error uploading product image', e);
+      throw AppException.from(e, context: 'Upload product image');
+    }
+  }
 }
