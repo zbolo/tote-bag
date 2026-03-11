@@ -2,21 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const Color primaryColor = Color(0xFF6366F1);
-  static const Color secondaryColor = Color(0xFF8B5CF6);
-  static const Color accentColor = Color(0xFFEC4899);
-  static const Color backgroundColor = Color(0xFFF9FAFB);
+  // Primary palette — extracted from colors-1.jpg & colors-2.jpg
+  static const Color primaryColor = Color(0xFF1B6B4E);       // Deep forest green
+  static const Color secondaryColor = Color(0xFFC47B62);     // Terracotta
+  static const Color accentColor = Color(0xFFBFA033);        // Golden mustard
+  static const Color backgroundColor = Color(0xFFF5F0EA);    // Warm off-white
   static const Color surfaceColor = Color(0xFFFFFFFF);
-  static const Color errorColor = Color(0xFFEF4444);
-  static const Color successColor = Color(0xFF10B981);
-  static const Color warningColor = Color(0xFFF59E0B);
+  static const Color errorColor = Color(0xFFD4483E);         // Warm red
+  static const Color successColor = Color(0xFF3D9B6E);       // Medium green
+  static const Color warningColor = Color(0xFFBFA033);       // Golden mustard
 
-  static const Color textPrimaryColor = Color(0xFF111827);
-  static const Color textSecondaryColor = Color(0xFF6B7280);
-  static const Color textTertiaryColor = Color(0xFF9CA3AF);
+  // Extended palette
+  static const Color sageLightColor = Color(0xFF9CB5A0);     // Light sage green
+  static const Color oliveSageColor = Color(0xFF9B9D6C);     // Olive sage
+  static const Color tealGreyColor = Color(0xFF6B8A85);      // Teal grey
 
-  static const Color borderColor = Color(0xFFE5E7EB);
-  static const Color dividerColor = Color(0xFFF3F4F6);
+  static const Color textPrimaryColor = Color(0xFF2D2A26);   // Warm dark
+  static const Color textSecondaryColor = Color(0xFF6B6660); // Warm grey
+  static const Color textTertiaryColor = Color(0xFF9B958E);  // Light warm grey
+
+  static const Color borderColor = Color(0xFFE2DDD6);        // Warm border
+  static const Color dividerColor = Color(0xFFF0EBE4);       // Warm divider
 
   static ThemeData get lightTheme {
     return ThemeData(

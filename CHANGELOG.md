@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-11
+
+### Changed
+- New UI color palette extracted from reference images (earthy/natural tones)
+  - Primary: Deep forest green (#1B6B4E)
+  - Secondary: Terracotta (#C47B62)
+  - Accent: Golden mustard (#BFA033)
+  - Background: Warm off-white (#F5F0EA)
+  - Warm-toned text and border colors
+- Added extended palette colors: sage light, olive sage, teal grey
+- Updated all theme colors (text, borders, dividers) to warm tones
+
 ## [0.2.1] - 2026-03-11
 
 ### Changed
@@ -162,7 +174,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Supertokens 20.1.5
 - MikroORM 6.3.12
 
-[Unreleased]: https://github.com/username/tote-bag/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/username/tote-bag/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/username/tote-bag/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/username/tote-bag/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/username/tote-bag/compare/v0.1.7...v0.2.0
 [0.1.7]: https://github.com/username/tote-bag/compare/v0.1.6...v0.1.7
